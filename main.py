@@ -1,21 +1,14 @@
-# main.py
-# Required packages: Flask, Flask-SQLAlchemy, Flask-Login, Werkzeug
-# You can install them using: pip install Flask Flask-SQLAlchemy Flask-Login Werkzeug
-
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 
-
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-db = SQLAlchemy(app)
-# Get the absolute path of the current file
+app.config['SECRET_KEY'] = 'a_secret_key'
 basedir = os.path.abspath(os.path.dirname(__file__))
-# Set the database URI
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
+
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -25,6 +18,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    posts = db.relationship('Post', backref='author', lazy=True)
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -37,21 +31,33 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 @app.route('/')
+@login_required
 def index():
     posts = Post.query.all()
     return render_template('index.html', posts=posts)
+
+@app.route('/create_post', methods=['GET', 'POST'])
+@login_required
+def create_post():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        content = request.form.get('content')
+        # This links the post to the specific user who uploaded it
+        new_post = Post(title=title, content=content, user_id=current_user.id)
+        db.session.add(new_post)
+        db.session.commit()
+        return redirect(url_for('index'))
+    return render_template('create_post.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        
         user = User.query.filter_by(username=username).first()
         if user:
             flash('Username already exists.')
             return redirect(url_for('register'))
-
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
         new_user = User(username=username, password=hashed_password)
         db.session.add(new_user)
@@ -61,6 +67,8 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -77,18 +85,6 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
-
-@app.route('/create_post', methods=['GET', 'POST'])
-@login_required
-def create_post():
-    if request.method == 'POST':
-        title = request.form.get('title')
-        content = request.form.get('content')
-        new_post = Post(title=title, content=content, user_id=current_user.id)
-        db.session.add(new_post)
-        db.session.commit()
-        return redirect(url_for('index'))
-    return render_template('create_post.html')
 
 if __name__ == '__main__':
     with app.app_context():
