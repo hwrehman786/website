@@ -10,7 +10,7 @@
         <div>
             <h3>{{ post.title }}</h3>
             <p>{{ post.content }}</p>
-            <small>By User ID: {{ post.user_id }}</small>
+            <small>By: {{ post.author.username }}</small>
         </div>
         <hr>
     {% endfor %}
