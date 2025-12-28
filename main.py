@@ -8,8 +8,10 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, cur
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'a_secret_key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+db = SQLAlchemy(app)
 # Get the absolute path of the current file
 basedir = os.path.abspath(os.path.dirname(__file__))
 # Set the database URI
@@ -91,4 +93,4 @@ def create_post():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
