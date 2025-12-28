@@ -14,7 +14,22 @@ This is a simple blog website with user registration, login, and post creation f
 
 3. **Install the required packages:**
    ```bash
-   pip install Flask Flask-SQLAlchemy Flask-Login Werkzeug
+   pip install -r requirements.txt
+   ```
+
+4. **Set Environment Variables:**
+   For security reasons, the `SECRET_KEY` and `FLASK_DEBUG` are loaded from environment variables.
+
+   **On Windows:**
+   ```powershell
+   $env:SECRET_KEY = 'a_very_secret_key'
+   $env:FLASK_DEBUG = 'true'
+   ```
+
+   **On macOS/Linux:**
+   ```bash
+   export SECRET_KEY='a_very_secret_key'
+   export FLASK_DEBUG='true'
    ```
 
 ## Running the Application
