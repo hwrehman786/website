@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
-
+import base64
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'a_secret_key'
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -14,6 +14,13 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    image_data = db.Column(db.Text, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -36,14 +43,26 @@ def index():
     posts = Post.query.all()
     return render_template('index.html', posts=posts)
 
+@app.route('/my_account')
+@login_required
+def my_account():
+    # Only fetch posts belonging to the logged-in user
+    user_posts = Post.query.filter_by(user_id=current_user.id).all()
+    return render_template('my_account.html', posts=user_posts)
+
 @app.route('/create_post', methods=['GET', 'POST'])
 @login_required
 def create_post():
     if request.method == 'POST':
         title = request.form.get('title')
         content = request.form.get('content')
-        # This links the post to the specific user who uploaded it
-        new_post = Post(title=title, content=content, user_id=current_user.id)
+        file = request.files.get('image')
+        
+        image_base64 = None
+        if file:
+            image_base64 = base64.b64encode(file.read()).decode('utf-8')
+
+        new_post = Post(title=title, content=content, image_data=image_base64, user_id=current_user.id)
         db.session.add(new_post)
         db.session.commit()
         return redirect(url_for('index'))
