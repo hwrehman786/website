@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="account-header">
+    <h2>My Uploaded Posts</h2>
+    <p>You have published {{ posts|length }} posts.</p>
+</div>
+
+<div class="post-grid">
+    {% for post in posts %}
+    <div class="post-card">
+        {% if post.image_data %}
+            <img src="data:image/jpeg;base64,{{ post.image_data }}" class="post-img">
+        {% endif %}
+        <h3>{{ post.title }}</h3>
+        <p>{{ post.content[:100] }}...</p>
+        <div class="post-actions">
+            <button class="btn-edit">Edit</button>
+            <button class="btn-delete">Delete</button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
