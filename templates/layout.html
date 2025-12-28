@@ -18,7 +18,7 @@
                 <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Feed</a></li>
                 {% if current_user.is_authenticated %}
                     <li><a href="{{ url_for('create_post') }}"><i class="fas fa-plus-circle"></i> Create Post</a></li>
-                    <li><a href="#"><i class="fas fa-user-circle"></i> My Account</a></li>
+                    <li><a href="{{ url_for('my_account') }}"><i class="fas fa-user-circle"></i> My Account</a></li>
                     <li class="logout-link"><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 {% else %}
                     <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
