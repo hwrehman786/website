@@ -1,30 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>{% block title %}{% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <nav>
-        <a href="{{ url_for('index') }}">Home</a>
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('create_post') }}">Create Post</a>
-            <a href="{{ url_for('logout') }}">Logout</a>
-        {% else %}
-            <a href="{{ url_for('login') }}">Login</a>
-            <a href="{{ url_for('register') }}">Register</a>
-        {% endif %}
-    </nav>
-    <div>
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul>
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
+<body class="dashboard-body">
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <h2>BLOG<span>PRO</span></h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Feed</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('create_post') }}"><i class="fas fa-plus-circle"></i> Create Post</a></li>
+                    <li><a href="#"><i class="fas fa-user-circle"></i> My Account</a></li>
+                    <li class="logout-link"><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                {% endif %}
             </ul>
-        {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
+        </nav>
+
+        <main class="content-area">
+            <header class="top-header">
+                <div class="user-info">
+                    Welcome back, <span>{{ current_user.username if current_user.is_authenticated else 'Guest' }}</span>
+                </div>
+            </header>
+            
+            <div class="glass-panel">
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="flash-message">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
     </div>
 </body>
 </html>
