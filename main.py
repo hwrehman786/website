@@ -69,10 +69,17 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        
         user = User.query.filter_by(username=username).first()
+        
         if user:
-            flash('Username already exists.')
+            flash('This username is already taken. Please change your username.')
             return redirect(url_for('register'))
+            
+        if len(password) != 8:
+            flash('Password must be exactly 8 characters long.')
+            return redirect(url_for('register'))
+            
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
         new_user = User(username=username, password=hashed_password)
         db.session.add(new_user)
