@@ -1,21 +1,188 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <h2 style="color: white; margin-bottom: 30px;">Community Feed</h2>
-    {% if posts %}
-        {% for post in posts %}
-            <div class="post-card">
-                <h3>{{ post.title }}</h3>
-                <p style="color: #cbd5e1; line-height: 1.6;">{{ post.content }}</p>
-                <div style="margin-top: 20px; font-size: 0.85rem; color: #64748b; display: flex; justify-content: space-between;">
-                    <span><i class="fas fa-user"></i> {{ post.author.username }}</span>
-                    {% if post.user_id == current_user.id %}
-                        <span style="color: #10b981;">(Your Post)</span>
-                    {% endif %}
+<div class="center-panel">
+    <div class="dashboard-grid">
+        <div>
+            <div class="welcome-card">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <div class="welcome-username">Welcome, {{ current_user.username|display_name or 'Guest' }}</div>
+                        <div class="welcome-sub">Here's what's happening in your community</div>
+                    </div>
+                    <div style="min-width:120px;text-align:right;color:var(--muted)">
+                        <div style="font-size:12px">Member since</div>
+                        <div style="font-weight:700">{% if current_user.is_authenticated and current_user.created_at %}{{ current_user.created_at.strftime('%b %Y') }}{% endif %}</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:18px;height:120px;border-radius:10px;background:linear-gradient(90deg, rgba(0,210,255,0.04), rgba(255,255,255,0.02));display:flex;align-items:center;justify-content:center;color:var(--muted)">
+                    Chart placeholder
                 </div>
             </div>
-        {% endfor %}
-    {% else %}
-        <p style="color: #64748b;">No stories found. Be the first to post!</p>
+
+            <div style="height:20px"></div>
+
+            <div class="recent-activity">
+                <h3 style="margin-top:0;color:#e6f9ff">Recent Activity</h3>
+                {% if posts and posts.items %}
+                    {% for post in posts.items[:6] %}
+                        <div class="activity-item">
+                            <div style="flex:1">
+                                <div style="font-weight:600">{{ post.title }}</div>
+                                <div style="color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px">
+                                    <img src="{{ avatar_url(post.author,32) }}" style="width:32px;height:32px;border-radius:6px;object-fit:cover" alt="avatar">
+                                    <span>by {{ post.author.username|display_name }}</span>
+                                </div>
+                            </div>
+                            <div class="activity-time">{{ post.created_at.strftime('%b %d') if post.created_at else '' }}</div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="color:var(--muted);padding:12px">No recent activity</div>
+                {% endif %}
+            </div>
+            <div style="height:20px"></div>
+
+            <!-- posts-feed moved below to span full width -->
+        </div>
+
+        <div>
+            <div class="profile-card">
+                <h3 style="margin-top:0;color:#e6f9ff">Your Profile</h3>
+                <div style="display:flex;gap:12px;align-items:center;margin-top:12px">
+                    <img src="{{ avatar_url(current_user,64) }}" style="width:64px;height:64px;border-radius:12px;object-fit:cover;border:1px solid rgba(255,255,255,0.04)">
+                    <div>
+                        <div style="font-weight:700">{{ current_user.username|display_name or 'Guest' }}</div>
+                        <div style="color:var(--muted);font-size:13px">{{ current_user.email|display_name if current_user.email else '' }}</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:16px">
+                    <a class="btn-primary" href="/create_post">Create Post</a>
+                </div>
+            </div>
+
+            <div style="height:16px"></div>
+
+            <div class="profile-card">
+                <h3 style="margin-top:0;color:#e6f9ff">Top Tags</h3>
+                <div id="tagCloud" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+                    <div style="color:var(--muted);font-size:12px">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="height:20px"></div>
+
+    <div class="posts-feed">
+        <h3 style="color:var(--text);margin-bottom:10px">Community Feed</h3>
+        {% if posts and posts.items %}
+            {% for post in posts.items %}
+                <div class="post-card">
+                    {% if post.image_filename %}
+                        <img src="{{ url_for('static', filename='uploads/' ~ post.image_filename) }}" class="post-img" alt="cover">
+                    {% elif post.image_data %}
+                        <img src="data:image/*;base64,{{ post.image_data }}" class="post-img" alt="cover">
+                    {% endif %}
+                    <h3>{{ post.title }}</h3>
+                    <div style="color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:10px">
+                        <img src="{{ avatar_url(post.author,36) }}" style="width:36px;height:36px;border-radius:8px;object-fit:cover" alt="avatar">
+                        <div>{{ post.author.username|display_name }} · {{ post.published_at.strftime('%b %d, %Y') if post.published_at else '' }}</div>
+                    </div>
+                    <div class="post-content">{{ post.content|md }}</div>
+                    {% if post.tags %}
+                        <div style="margin-top:10px">
+                            {% for t in post.tags.split(',') %}
+                                <a href="{{ url_for('posts_by_tag', tag=t.strip()) }}" style="margin-right:8px;color:var(--primary);text-decoration:none">#{{ t.strip() }}</a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if current_user.is_authenticated and post.user_id == current_user.id %}
+                        <div style="margin-top:12px;display:flex;gap:8px">
+                            <a href="{{ url_for('edit_post', post_id=post.id) }}" class="btn-primary" style="width:auto;padding:8px 12px;border-radius:8px">Edit</a>
+                            <form method="post" action="{{ url_for('delete_post', post_id=post.id) }}" onsubmit="return confirm('Delete this post?');">
+                                <button type="submit" class="btn-primary" style="background:#ff6b6b;color:#111;border:none;padding:8px 12px">Delete</button>
+                            </form>
+                        </div>
+                    {% endif %}
+
+                    <!-- comments -->
+                    <div style="margin-top:14px;border-top:1px dashed rgba(2,6,23,0.04);padding-top:12px">
+                        {% if post.comments %}
+                            {% for comment in post.comments %}
+                                <div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0">
+                                    <div>
+                                        <div style="display:flex;gap:8px;align-items:center">
+                                            <img src="{{ avatar_url(comment.author,28) }}" style="width:28px;height:28px;border-radius:6px;object-fit:cover" alt="avatar">
+                                            <div>
+                                                <div style="font-weight:600;font-size:13px">{{ comment.author.username|display_name }}</div>
+                                                <div style="color:var(--muted);font-size:13px">{{ comment.body }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align:right">
+                                        <div style="font-size:12px;color:var(--muted)">{{ comment.created_at.strftime('%b %d, %Y %H:%M') }}</div>
+                                        {% if current_user.is_authenticated and (comment.user_id == current_user.id or post.user_id == current_user.id) %}
+                                            <form method="post" action="{{ url_for('delete_comment', comment_id=comment.id) }}" style="margin-top:6px">
+                                                <button type="submit" class="btn-primary" style="background:transparent;color:var(--primary);border:none;padding:6px">Delete</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if current_user.is_authenticated %}
+                            <form method="post" action="{{ url_for('create_comment', post_id=post.id) }}" style="margin-top:10px;display:flex;gap:8px">
+                                <input name="body" placeholder="Write a comment..." style="flex:1;padding:8px;border:1px solid rgba(2,6,23,0.06);border-radius:8px" />
+                                <button class="btn-primary" style="width:auto;padding:8px 12px">Comment</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div style="color:var(--muted);padding:12px">No posts yet. Be the first to publish!</div>
+        {% endif %}
+    </div>
+    {% if posts and posts.pages and posts.pages > 1 %}
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:18px">
+            {% if posts.has_prev %}
+                {% if pagination_endpoint == 'index' %}
+                    <a href="{{ url_for('index', page=posts.prev_num) }}" class="btn-primary" style="width:auto;padding:8px 10px">Prev</a>
+                {% elif pagination_endpoint == 'search' %}
+                    <a href="{{ url_for('search', q=pagination_args['q'], page=posts.prev_num) }}" class="btn-primary" style="width:auto;padding:8px 10px">Prev</a>
+                {% elif pagination_endpoint == 'posts_by_tag' %}
+                    <a href="{{ url_for('posts_by_tag', tag=pagination_args['tag'], page=posts.prev_num) }}" class="btn-primary" style="width:auto;padding:8px 10px">Prev</a>
+                {% endif %}
+            {% endif %}
+
+            {% for p in range(1, posts.pages + 1) %}
+                {% if p == posts.page %}
+                    <span style="padding:8px 10px;border-radius:8px;background:var(--primary);color:#fff;font-weight:600">{{ p }}</span>
+                {% else %}
+                    {% if pagination_endpoint == 'index' %}
+                        <a href="{{ url_for('index', page=p) }}" style="padding:8px 10px;border-radius:8px;background:transparent;color:var(--text);border:1px solid rgba(2,6,23,0.04);text-decoration:none">{{ p }}</a>
+                    {% elif pagination_endpoint == 'search' %}
+                        <a href="{{ url_for('search', q=pagination_args['q'], page=p) }}" style="padding:8px 10px;border-radius:8px;background:transparent;color:var(--text);border:1px solid rgba(2,6,23,0.04);text-decoration:none">{{ p }}</a>
+                    {% elif pagination_endpoint == 'posts_by_tag' %}
+                        <a href="{{ url_for('posts_by_tag', tag=pagination_args['tag'], page=p) }}" style="padding:8px 10px;border-radius:8px;background:transparent;color:var(--text);border:1px solid rgba(2,6,23,0.04);text-decoration:none">{{ p }}</a>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+
+            {% if posts.has_next %}
+                {% if pagination_endpoint == 'index' %}
+                    <a href="{{ url_for('index', page=posts.next_num) }}" class="btn-primary" style="width:auto;padding:8px 10px">Next</a>
+                {% elif pagination_endpoint == 'search' %}
+                    <a href="{{ url_for('search', q=pagination_args['q'], page=posts.next_num) }}" class="btn-primary" style="width:auto;padding:8px 10px">Next</a>
+                {% elif pagination_endpoint == 'posts_by_tag' %}
+                    <a href="{{ url_for('posts_by_tag', tag=pagination_args['tag'], page=posts.next_num) }}" class="btn-primary" style="width:auto;padding:8px 10px">Next</a>
+                {% endif %}
+            {% endif %}
+        </div>
     {% endif %}
+</div>
 {% endblock %}
