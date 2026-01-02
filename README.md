@@ -50,3 +50,8 @@ This is a simple blog website with user registration, login, and post creation f
 - Create new blog posts
 - View all blog posts
 - User session management
+
+## Custom Login Background
+
+- To use the image you attached as the login background, save it to `static/bg.jpg` in the project root.
+- The auth layout already references `static/bg.jpg` and will display it automatically on the login/register pages. If you don't see the image, ensure the file is named exactly `bg.jpg` and restart the server.
