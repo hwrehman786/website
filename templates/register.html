@@ -1,31 +1,50 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Register</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="split-container">
-        <div class="left-side">
-            <h1>Join Us.</h1>
-            <p>Create an account to start sharing your stories with the world.</p>
+{% extends "auth_layout.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-split">
+        <div class="auth-left">
+            <div style="display:flex;align-items:center;gap:12px">
+                <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="48" height="48" rx="10" fill="#001428"/>
+                    <path d="M12 34C14.5 30 17 28 24 24C31 20 34 18 36 16" stroke="#00d2ff" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="18" cy="18" r="3" fill="#00d2ff"/>
+                </svg>
+                <div>
+                    <div class="brand">The Witcher Blogs</div>
+                    <div class="tagline">Create your free account and start sharing.</div>
+                </div>
+            </div>
+            <div class="hero-illustration"></div>
         </div>
-        <div class="right-side">
+        <div class="auth-right">
             <div class="auth-card">
                 <div class="form-box">
                     <h2>Register</h2>
-                    <form method="post">
-                        <input type="text" name="username" placeholder="Choose Username" required>
-                        <input type="password" name="password" placeholder="Create Password" required>
+                    <form id="registerForm" method="post">
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input id="regUsername" type="text" name="username" placeholder="Choose Username" required autocomplete="username">
+                        </div>
+                        <div id="usernameHint" class="input-hint"></div>
+
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input id="regPassword" type="password" name="password" placeholder="Create Password (8 chars)" required autocomplete="new-password">
+                        </div>
+                        <div id="passwordHint" class="input-hint">Password must be exactly 8 characters.</div>
+
                         <button type="submit" class="btn-primary">Sign Up</button>
                     </form>
-                    <p style="margin-top:20px; font-size: 0.8rem;">
+                    <p style="margin-top:20px; font-size: 0.9rem; color: rgba(230,238,248,0.85)">
                         Already have an account? <a href="{{ url_for('login') }}" style="color:var(--primary)">Login here</a>
                     </p>
                 </div>
             </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
+
