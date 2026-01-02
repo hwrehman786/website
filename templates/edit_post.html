@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Edit Post</h2>
+    <form method="post" enctype="multipart/form-data">
+        <div class="input-group">
+            <input type="text" name="title" placeholder="Post Title" value="{{ post.title }}" required>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+            <div>
+                <label style="font-size:13px;color:var(--muted)">Write (Markdown supported)</label>
+                <div class="input-group">
+                    <textarea id="contentEditor" name="content" placeholder="Write your content here..." rows="14" required>{{ post.content }}</textarea>
+                </div>
+            </div>
+            <div>
+                <label style="font-size:13px;color:var(--muted)">Live Preview</label>
+                <div id="mdPreview" style="background:rgba(255,255,255,0.02);min-height:220px;padding:12px;border-radius:8px;color:var(--text);overflow:auto">{{ post.content|md }}</div>
+            </div>
+        </div>
+        <div class="input-group">
+            <input type="text" name="tags" placeholder="Tags (comma separated)" value="{{ post.tags or '' }}">
+        </div>
+        <div class="input-group">
+            <label style="font-size:13px;color:var(--muted)">Publish date/time (optional)</label>
+            <input type="datetime-local" name="publish_at" value="{% if post.publish_at %}{{ post.publish_at.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+        </div>
+        <div style="margin-bottom:12px">
+            <label><input type="checkbox" name="draft" {% if post.draft %}checked{% endif %}> Save as draft</label>
+        </div>
+        <div class="file-upload" id="dropZone" style="border:2px dashed rgba(255,255,255,0.2);padding:20px;border-radius:8px;text-align:center;cursor:pointer;transition:0.2s">
+            <label for="image"><i class="fas fa-cloud-upload-alt"></i> Drag image here or click to replace</label>
+            <input type="file" id="image" name="image" accept="image/*" style="display:none">
+            <div id="imagePreview" style="margin-top:12px"></div>
+        </div>
+        <button type="submit" class="btn-primary">Save Changes</button>
+    </form>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</div>
+{% endblock %}
