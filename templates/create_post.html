@@ -6,14 +6,35 @@
         <div class="input-group">
             <input type="text" name="title" placeholder="Post Title" required>
         </div>
-        <div class="input-group">
-            <textarea name="content" placeholder="Write your content here..." rows="10" required></textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+            <div>
+                <label style="font-size:13px;color:var(--muted)">Write (Markdown supported)</label>
+                <div class="input-group">
+                    <textarea id="contentEditor" name="content" placeholder="Write your content here..." rows="14" required></textarea>
+                </div>
+            </div>
+            <div>
+                <label style="font-size:13px;color:var(--muted)">Live Preview</label>
+                <div id="mdPreview" style="background:rgba(255,255,255,0.02);min-height:220px;padding:12px;border-radius:8px;color:var(--text);overflow:auto"></div>
+            </div>
         </div>
-        <div class="file-upload">
-            <label for="image"><i class="fas fa-image"></i> Add a Cover Photo</label>
-            <input type="file" id="image" name="image" accept="image/*">
+            <div class="input-group">
+                <input type="text" name="tags" placeholder="Tags (comma separated)">
+            </div>
+            <div class="input-group">
+                <label style="font-size:13px;color:var(--muted)">Publish date/time (optional)</label>
+                <input type="datetime-local" name="publish_at" placeholder="Publish at">
+            </div>
+            <div style="margin-bottom:12px">
+                <label><input type="checkbox" name="draft"> Save as draft</label>
+            </div>
+        <div class="file-upload" id="dropZone" style="border:2px dashed rgba(255,255,255,0.2);padding:20px;border-radius:8px;text-align:center;cursor:pointer;transition:0.2s">
+            <label for="image"><i class="fas fa-cloud-upload-alt"></i> Drag image here or click to upload</label>
+            <input type="file" id="image" name="image" accept="image/*" style="display:none">
+            <div id="imagePreview" style="margin-top:12px"></div>
         </div>
         <button type="submit" class="btn-primary">Publish Post</button>
     </form>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </div>
 {% endblock %}
