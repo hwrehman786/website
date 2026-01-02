@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Auth{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+</head>
+<body class="auth-body">
+    <div class="auth-background" aria-hidden="true">
+        <div class="auth-bg-image" role="presentation" style="background-image: url('{{ url_for('static', filename='bg.jpg') }}')"></div>
+        <svg class="auth-bg-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="navyGrad" x1="0" x2="1">
+                    <stop offset="0%" stop-color="#020617"/>
+                    <stop offset="100%" stop-color="#021428"/>
+                </linearGradient>
+                <radialGradient id="sphereLight" cx="30%" cy="30%">
+                    <stop offset="0%" stop-color="#9ffeff" stop-opacity="0.95"/>
+                    <stop offset="55%" stop-color="#00d2ff" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="#001420" stop-opacity="0.08"/>
+                </radialGradient>
+                <filter id="heavyBlur"><feGaussianBlur stdDeviation="40"/></filter>
+            </defs>
+
+            <rect width="100%" height="100%" fill="url(#navyGrad)" />
+
+            <!-- 3D floating liquid spheres on left -->
+            <g class="floating-spheres" filter="url(#heavyBlur)">
+                <g class="sphere s1">
+                    <circle cx="320" cy="300" r="220" fill="url(#sphereLight)" />
+                </g>
+                <g class="sphere s2">
+                    <circle cx="160" cy="150" r="90" fill="#002f3a" opacity="0.9" />
+                </g>
+                <g class="sphere s3">
+                    <circle cx="520" cy="420" r="160" fill="rgba(0,210,255,0.08)" />
+                </g>
+            </g>
+
+            <!-- subtle cyan light leaks -->
+            <g class="light-leaks">
+                <ellipse cx="1400" cy="120" rx="300" ry="80" fill="#001f2a" opacity="0.15" />
+                <ellipse cx="1200" cy="700" rx="360" ry="140" fill="#002b35" opacity="0.12" />
+            </g>
+        </svg>
+    </div>
+    <div class="auth-wrap">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
