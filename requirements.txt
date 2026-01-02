@@ -3,3 +3,6 @@ Flask-SQLAlchemy
 Flask-Login
 Werkzeug
 gunicorn
+Markdown
+Flask-Migrate
+Pygments
