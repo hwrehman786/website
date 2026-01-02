@@ -10,41 +10,46 @@
 </head>
 <body class="dashboard-body">
     <div class="dashboard-container">
-        <nav class="sidebar">
-            <div class="sidebar-logo">
-                <h2>BLOG<span>PRO</span></h2>
-            </div>
-            <ul class="nav-links">
-                <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Feed</a></li>
-                {% if current_user.is_authenticated %}
-                    <li><a href="{{ url_for('create_post') }}"><i class="fas fa-plus-circle"></i> Create Post</a></li>
-                    <li><a href="{{ url_for('my_account') }}"><i class="fas fa-user-circle"></i> My Account</a></li>
-                    <li class="logout-link"><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                {% else %}
-                    <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-
         <main class="content-area">
-            <header class="top-header">
-                <div class="user-info">
-                    Welcome back, <span>{{ current_user.username if current_user.is_authenticated else 'Guest' }}</span>
-                </div>
-            </header>
-            
-            <div class="glass-panel">
-                {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="flash-message">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+            <div class="center-panel">
+                <header class="top-header" style="display:flex;justify-content:space-between;align-items:center">
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <svg width="36" height="36" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <rect width="48" height="48" rx="10" fill="#001428"/>
+                            <path d="M12 34C14.5 30 17 28 24 24C31 20 34 18 36 16" stroke="#00d2ff" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="18" cy="18" r="3" fill="#00d2ff"/>
+                        </svg>
+                        <div style="font-weight:700;color:var(--text)">The Witcher Blogs</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:16px">
+                        <button id="themeToggle" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--text);width:36px;height:36px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px"><i class="fas fa-moon"></i></button>
+                        <div class="user-info">Welcome back, <span>{{ current_user.username|display_name if current_user.is_authenticated else 'Guest' }}</span></div>
+                    </div>
+                </header>
 
-                {% block content %}{% endblock %}
+                <nav class="glass-nav" aria-label="Main navigation">
+                    <a href="{{ url_for('index') }}">Home</a>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('create_post') }}">Create Post</a>
+                        <a href="{{ url_for('my_account') }}">My Account</a>
+                        <a href="{{ url_for('logout') }}">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}">Login</a>
+                        <a href="{{ url_for('register') }}">Register</a>
+                    {% endif %}
+                    <form action="{{ url_for('search') }}" method="get" style="margin-left:12px;display:flex;align-items:center">
+                        <input name="q" placeholder="Search posts..." style="padding:8px 10px;border-radius:8px;border:1px solid rgba(16,40,48,0.06);width:200px">
+                        <button type="submit" style="margin-left:8px;padding:8px 10px;border-radius:8px;background:var(--primary);border:none;color:#fff">Search</button>
+                    </form>
+                </nav>
+
+                <div class="glass-panel">
+                    {% block content %}{% endblock %}
+                </div>
             </div>
         </main>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
