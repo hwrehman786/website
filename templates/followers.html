@@ -30,12 +30,16 @@
                     </div>
                     
                     <div style="display:flex;gap:8px">
-                        <a href="{{ url_for('view_followers', user_id=follower.id) }}" style="flex:1;padding:8px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);border-radius:6px;text-align:center;color:var(--primary);text-decoration:none;font-size:12px;font-weight:600;transition:0.2s" onmouseover="this.style.background='rgba(0,212,255,0.15)'" onmouseout="this.style.background='rgba(0,212,255,0.1)'">
-                            View Profile
+                        <a href="{{ url_for('user_profile', username=follower.username) }}" style="flex:1;padding:8px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);border-radius:6px;text-align:center;color:var(--primary);text-decoration:none;font-size:12px;font-weight:600;transition:0.2s" onmouseover="this.style.background='rgba(0,212,255,0.15)'" onmouseout="this.style.background='rgba(0,212,255,0.1)'" title="View profile">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                        
+                        <a href="/messages/{{ follower.id }}" style="flex:1;padding:8px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);border-radius:6px;text-align:center;color:var(--primary);text-decoration:none;font-size:12px;font-weight:600;transition:0.2s" onmouseover="this.style.background='rgba(0,212,255,0.15)'" onmouseout="this.style.background='rgba(0,212,255,0.1)'" title="Send message">
+                            <i class="fas fa-envelope"></i> Message
                         </a>
                         
                         {% if is_own_profile %}
-                            <button onclick="removeFollower(this, {{ follower.id }})" style="padding:8px 12px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);border-radius:6px;color:var(--accent-warm);text-decoration:none;font-size:12px;font-weight:600;cursor:pointer;transition:0.2s" onmouseover="this.style.background='rgba(255,107,53,0.15)'" onmouseout="this.style.background='rgba(255,107,53,0.1)'">
+                            <button onclick="removeFollower(this, {{ follower.id }})" style="padding:8px 12px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.2);border-radius:6px;color:var(--accent-warm);text-decoration:none;font-size:12px;font-weight:600;cursor:pointer;transition:0.2s" onmouseover="this.style.background='rgba(255,107,53,0.15)'" onmouseout="this.style.background='rgba(255,107,53,0.1)'" title="Remove follower">
                                 <i class="fas fa-times"></i>
                             </button>
                         {% endif %}
