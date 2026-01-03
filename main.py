@@ -10,6 +10,9 @@ import base64
 from datetime import datetime
 from sqlalchemy import inspect, text
 import hashlib
+from dotenv import load_dotenv
+
+load_dotenv()
 try:
     from markdown import markdown as md_to_html
 except Exception:
@@ -21,7 +24,7 @@ except Exception:
     CODEHILITE_AVAILABLE = False
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'a_secret_key'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev_secret_key_change_in_production')
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db')
 
@@ -76,23 +79,6 @@ def ensure_bio_column():
         cols = [c['name'] for c in insp.get_columns('user')]
         if 'bio' in cols:
             return True
-        # add bio column
-        with db.engine.connect() as conn:
-            conn.execute(text('ALTER TABLE user ADD COLUMN bio VARCHAR(500)'))
-        return True
-    except Exception as e:
-        app.logger.error('ensure_bio_column error: %s', e)
-        return False
-
-def ensure_bio_column():
-    try:
-        insp = inspect(db.engine)
-        tables = insp.get_table_names()
-        if 'user' not in tables:
-            return False
-        cols = [c['name'] for c in insp.get_columns('user')]
-        if 'bio' in cols:
-            return True
         # add column for user bio
         with db.engine.connect() as conn:
             conn.execute(text('ALTER TABLE user ADD COLUMN bio VARCHAR(500)'))
@@ -102,6 +88,23 @@ def ensure_bio_column():
         app.logger.error('ensure_bio_column error: %s', e)
         return False
 
+def ensure_follow_status_column():
+    try:
+        insp = inspect(db.engine)
+        tables = insp.get_table_names()
+        if 'follow' not in tables:
+            return False
+        cols = [c['name'] for c in insp.get_columns('follow')]
+        if 'status' in cols:
+            return True
+        # add status column to follow table
+        with db.engine.connect() as conn:
+            conn.execute(text("ALTER TABLE follow ADD COLUMN status VARCHAR(20) DEFAULT 'pending'"))
+            conn.commit()
+        return True
+    except Exception as e:
+        app.logger.error('ensure_follow_status_column error: %s', e)
+        return False
 
 # Some Flask installs/environments may not expose `before_first_request` at import time.
 # Run schema fix at startup instead (called below in __main__ before running the app).
@@ -181,7 +184,10 @@ class Follow(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     follower_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     following_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    status = db.Column(db.String(20), default='pending')  # 'pending' or 'accepted'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    follower = db.relationship('User', foreign_keys=[follower_id])
+    following = db.relationship('User', foreign_keys=[following_id])
     __table_args__ = (db.UniqueConstraint('follower_id', 'following_id', name='unique_follow'),)
 
 
@@ -529,7 +535,7 @@ def search():
     page = request.args.get('page', 1, type=int)
     per_page = 8
     now = datetime.utcnow()
-    pagination = Post.query.filter((Post.title.ilike(f"%{q}%")) | (Post.content.ilike(f"%{q}%"))).filter(Post.draft==False).filter((Post.publish_at==None) | (Post.publish_at <= now)).order_by(Post.published_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    pagination = Post.query.filter((Post.title.ilike(f"%{q}%")) | (Post.content.ilike(f"%{q}%"))).filter(Post.draft==False).filter((Post.publish_at==None) | (Post.publish_at <= now)).order_by(Post.publish_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     return render_template('index.html', posts=pagination, pagination_endpoint='search', pagination_args={'q': q})
 
 
@@ -538,7 +544,7 @@ def posts_by_tag(tag):
     page = request.args.get('page', 1, type=int)
     per_page = 8
     now = datetime.utcnow()
-    pagination = Post.query.filter(Post.tags.ilike(f"%{tag}%"), Post.draft==False).filter((Post.publish_at==None) | (Post.publish_at <= now)).order_by(Post.published_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    pagination = Post.query.filter(Post.tags.ilike(f"%{tag}%"), Post.draft==False).filter((Post.publish_at==None) | (Post.publish_at <= now)).order_by(Post.publish_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     return render_template('index.html', posts=pagination, pagination_endpoint='posts_by_tag', pagination_args={'tag': tag})
 
 @app.route('/api/tags')
@@ -712,15 +718,25 @@ def follow_user(user_id):
     ).first()
     
     if existing:
-        return jsonify({'error': 'Already following'}), 400
+        return jsonify({'error': 'Already sent follow request'}), 400
     
-    new_follow = Follow(follower_id=current_user.id, following_id=user_id)
+    # Create follow request (pending status)
+    new_follow = Follow(follower_id=current_user.id, following_id=user_id, status='pending')
     db.session.add(new_follow)
+    
+    # Create notification for the user being followed
+    notif = Notification(
+        user_id=user_id,
+        actor_id=current_user.id,
+        type='follow'
+    )
+    db.session.add(notif)
+    
     db.session.commit()
     
     return jsonify({
         'success': True,
-        'follower_count': user_to_follow.followers.count()
+        'message': 'Follow request sent'
     })
 
 
@@ -754,6 +770,68 @@ def is_following(user_id):
     return jsonify({'following': following})
 
 
+# ===== FOLLOW REQUEST MANAGEMENT =====
+@app.route('/follow_requests')
+@login_required
+def follow_requests():
+    page = request.args.get('page', 1, type=int)
+    # Get pending follow requests
+    requests = Follow.query.filter_by(
+        following_id=current_user.id,
+        status='pending'
+    ).order_by(Follow.created_at.desc()).paginate(page=page, per_page=15, error_out=False)
+    
+    return render_template('follow_requests.html', requests=requests, pagination_endpoint='follow_requests', pagination_args={})
+
+
+@app.route('/api/accept_follow/<int:follow_id>', methods=['POST'])
+@login_required
+def accept_follow(follow_id):
+    follow = Follow.query.get_or_404(follow_id)
+    
+    # Only the person being followed can accept
+    if follow.following_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    # Update follow status to accepted
+    follow.status = 'accepted'
+    
+    # Auto-follow back: create reverse follow relationship
+    reverse_follow = Follow.query.filter_by(
+        follower_id=follow.following_id,
+        following_id=follow.follower_id
+    ).first()
+    
+    if not reverse_follow:
+        reverse_follow = Follow(
+            follower_id=follow.following_id,
+            following_id=follow.follower_id,
+            status='accepted'
+        )
+        db.session.add(reverse_follow)
+    else:
+        reverse_follow.status = 'accepted'
+    
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+
+@app.route('/api/reject_follow/<int:follow_id>', methods=['POST'])
+@login_required
+def reject_follow(follow_id):
+    follow = Follow.query.get_or_404(follow_id)
+    
+    # Only the person being followed can reject
+    if follow.following_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    db.session.delete(follow)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+
 @app.route('/api/like/<int:post_id>', methods=['POST'])
 @login_required
 def like_post(post_id):
@@ -769,6 +847,17 @@ def like_post(post_id):
     
     new_like = Like(post_id=post_id, user_id=current_user.id)
     db.session.add(new_like)
+    
+    # Create notification for post author
+    if post.user_id != current_user.id:
+        notif = Notification(
+            user_id=post.user_id,
+            actor_id=current_user.id,
+            type='like',
+            post_id=post_id
+        )
+        db.session.add(notif)
+    
     db.session.commit()
     
     return jsonify({
@@ -917,25 +1006,58 @@ def bookmarks():
 def user_profile(username):
     user = User.query.filter_by(username=username).first_or_404()
     page = request.args.get('page', 1, type=int)
-    per_page = 8
+    tag_filter = request.args.get('tag', '')
+    search_query = request.args.get('search', '')
+    per_page = 12
     now = datetime.utcnow()
     
-    posts = Post.query.filter_by(
+    # Base query
+    query = Post.query.filter_by(
         user_id=user.id,
         draft=False
     ).filter(
         (Post.publish_at == None) | (Post.publish_at <= now)
-    ).order_by(Post.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    )
+    
+    # Apply tag filter
+    if tag_filter:
+        query = query.filter(Post.tags.ilike(f'%{tag_filter}%'))
+    
+    # Apply search filter
+    if search_query:
+        query = query.filter(
+            (Post.title.ilike(f'%{search_query}%')) | 
+            (Post.content.ilike(f'%{search_query}%'))
+        )
+    
+    posts = query.order_by(Post.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    
+    # Get user's tags
+    all_posts = Post.query.filter_by(user_id=user.id, draft=False).filter(
+        (Post.publish_at == None) | (Post.publish_at <= now)
+    ).all()
+    tags_set = set()
+    for post in all_posts:
+        if post.tags:
+            for tag in post.tags.split(','):
+                tags_set.add(tag.strip())
+    user_tags = sorted(list(tags_set))
     
     is_following = False
+    follow_status = None
     if current_user.is_authenticated:
-        is_following = Follow.query.filter_by(
+        follow = Follow.query.filter_by(
             follower_id=current_user.id,
             following_id=user.id
-        ).first() is not None
+        ).first()
+        if follow:
+            is_following = True
+            follow_status = follow.status
     
     return render_template('profile.html', user=user, posts=posts, is_following=is_following, 
-                         pagination_endpoint='user_profile', pagination_args={'username': username})
+                         follow_status=follow_status, user_tags=user_tags, current_tag=tag_filter,
+                         search_query=search_query, pagination_endpoint='user_profile', 
+                         pagination_args={'username': username, 'tag': tag_filter, 'search': search_query})
 
 
 @app.route('/trending')
@@ -1043,12 +1165,63 @@ def unread_count():
 def messages():
     page = request.args.get('page', 1, type=int)
     
-    # Get conversations with last message
-    conversations = db.session.query(Message).filter(
-        (Message.sender_id == current_user.id) | (Message.recipient_id == current_user.id)
-    ).order_by(Message.created_at.desc()).paginate(page=page, per_page=15, error_out=False)
+    # Get all unique conversation partners
+    # Get all messages where user is sender or recipient
+    sender_partners = db.session.query(
+        Message.recipient_id.label('user_id'),
+        db.func.max(Message.created_at).label('last_msg_time')
+    ).filter(Message.sender_id == current_user.id).group_by(Message.recipient_id).all()
     
-    return render_template('messages.html', conversations=conversations, pagination_endpoint='messages', pagination_args={})
+    recipient_partners = db.session.query(
+        Message.sender_id.label('user_id'),
+        db.func.max(Message.created_at).label('last_msg_time')
+    ).filter(Message.recipient_id == current_user.id).group_by(Message.sender_id).all()
+    
+    # Combine and deduplicate
+    conversations_dict = {}
+    for partner_id, last_time in sender_partners + recipient_partners:
+        if partner_id not in conversations_dict or last_time > conversations_dict[partner_id]:
+            conversations_dict[partner_id] = last_time
+    
+    # Get the latest message for each conversation
+    conversations_with_msgs = []
+    for partner_id, last_time in conversations_dict.items():
+        latest_msg = db.session.query(Message).filter(
+            ((Message.sender_id == current_user.id) & (Message.recipient_id == partner_id)) |
+            ((Message.sender_id == partner_id) & (Message.recipient_id == current_user.id))
+        ).order_by(Message.created_at.desc()).first()
+        
+        if latest_msg:
+            conversations_with_msgs.append(latest_msg)
+    
+    # Sort by creation time
+    conversations_with_msgs.sort(key=lambda x: x.created_at, reverse=True)
+    
+    # Manually paginate
+    per_page = 15
+    total = len(conversations_with_msgs)
+    pages = (total + per_page - 1) // per_page
+    
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_conversations = conversations_with_msgs[start:end]
+    
+    # Create a simple pagination object
+    class Pagination:
+        def __init__(self, items, page, per_page, total):
+            self.items = items
+            self.page = page
+            self.per_page = per_page
+            self.total = total
+            self.pages = (total + per_page - 1) // per_page
+            self.has_prev = page > 1
+            self.has_next = page < self.pages
+            self.prev_num = page - 1
+            self.next_num = page + 1
+    
+    pagination_obj = Pagination(paginated_conversations, page, per_page, total)
+    
+    return render_template('messages.html', conversations=pagination_obj, pagination_endpoint='messages', pagination_args={})
 
 
 @app.route('/messages/<int:user_id>')
@@ -1085,18 +1258,50 @@ def send_message(recipient_id):
     if not body:
         return jsonify({'error': 'Message cannot be empty'}), 400
     
-    # Check if blocked
-    is_blocked = Block.query.filter_by(blocker_id=current_user.id, blocked_id=recipient_id).first() is not None
-    is_blocked_by = Block.query.filter_by(blocker_id=recipient_id, blocked_id=current_user.id).first() is not None
-    
-    if is_blocked or is_blocked_by:
-        return jsonify({'error': 'Cannot message this user'}), 403
-    
     msg = Message(sender_id=current_user.id, recipient_id=recipient_id, body=body)
     db.session.add(msg)
     db.session.commit()
     
     return jsonify({'success': True, 'message_id': msg.id})
+
+
+@app.route('/api/get_messages/<int:user_id>')
+@login_required
+def get_messages(user_id):
+    """Get all messages with a specific user"""
+    messages = Message.query.filter(
+        ((Message.sender_id == current_user.id) & (Message.recipient_id == user_id)) |
+        ((Message.sender_id == user_id) & (Message.recipient_id == current_user.id))
+    ).order_by(Message.created_at.asc()).all()
+    
+    # Mark messages as read
+    Message.query.filter_by(sender_id=user_id, recipient_id=current_user.id, is_read=False).update({'is_read': True})
+    db.session.commit()
+    
+    msgs_data = [{
+        'id': msg.id,
+        'body': msg.body,
+        'created_at': msg.created_at.isoformat(),
+        'is_sent': msg.sender_id == current_user.id,
+        'is_read': msg.is_read
+    } for msg in messages]
+    
+    return jsonify({'success': True, 'messages': msgs_data})
+
+
+@app.route('/api/delete_message/<int:message_id>', methods=['POST'])
+@login_required
+def delete_message(message_id):
+    msg = Message.query.get_or_404(message_id)
+    
+    # Only the sender can delete the message
+    if msg.sender_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    db.session.delete(msg)
+    db.session.commit()
+    
+    return jsonify({'success': True})
 
 
 # ===== BLOCK/UNBLOCK =====
@@ -1242,15 +1447,17 @@ def reply_comment(comment_id):
 @login_required
 def recommendations():
     # Get users the current user doesn't follow
-    following_ids = db.session.query(Follow.followed_id).filter_by(follower_id=current_user.id).all()
+    following_ids = db.session.query(Follow.following_id).filter_by(follower_id=current_user.id).all()
     following_ids = [f[0] for f in following_ids] + [current_user.id]
     
     # Get recommendations: users with most followers, excluding following
+    # Simple approach: get all users not followed and sort in Python by follower count
     recommended_users = User.query.filter(
         User.id.notin_(following_ids)
-    ).order_by(
-        User.followers.count().desc()
-    ).limit(20).all()
+    ).all()
+    
+    # Sort by follower count in descending order
+    recommended_users = sorted(recommended_users, key=lambda x: x.followers.count(), reverse=True)[:20]
     
     return render_template('recommendations.html', recommended_users=recommended_users)
 
@@ -1260,16 +1467,21 @@ def recommendations():
 @login_required
 def analytics():
     # Get current user's posts with stats
-    posts = Post.query.filter_by(author_id=current_user.id).order_by(Post.created_at.desc()).all()
+    posts = Post.query.filter_by(user_id=current_user.id).order_by(Post.created_at.desc()).all()
     
     analytics_data = []
     for post in posts:
+        likes_count = len(post.likes)
+        comments_count = len(post.comments)
+        views_count = len(post.views)
+        engagement_rate = (likes_count + comments_count) / max(views_count, 1) * 100 if views_count > 0 else 0
+        
         analytics_data.append({
             'post': post,
-            'likes': post.likes.count(),
-            'comments': post.comments.count(),
-            'views': post.views.count(),
-            'engagement_rate': (post.likes.count() + post.comments.count()) / max(post.views.count(), 1) * 100 if post.views.count() > 0 else 0
+            'likes': likes_count,
+            'comments': comments_count,
+            'views': views_count,
+            'engagement_rate': engagement_rate
         })
     
     # Sort by engagement
@@ -1356,6 +1568,7 @@ if __name__ == '__main__':
         ensure_publish_at_column()
         ensure_avatar_column()
         ensure_bio_column()
+        ensure_follow_status_column()
         
         # Fix existing posts with NULL published_at and draft=False
         # These should have been published
