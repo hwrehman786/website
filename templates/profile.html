@@ -2,36 +2,220 @@
 
 {% block content %}
 <div class="center-panel">
-    <!-- Profile Header -->
-    <div style="display:flex;align-items:center;gap:20px;margin-bottom:28px;background:linear-gradient(135deg,rgba(0,212,255,0.08),rgba(255,107,53,0.04));padding:24px;border-radius:14px;border:1px solid rgba(0,212,255,0.1)">
-        <img src="{{ avatar_url(user,128) }}" alt="avatar" style="width:100px;height:100px;border-radius:12px;object-fit:cover;border:3px solid var(--primary)">
-        <div style="flex:1">
-            <h1 style="margin:0;color:var(--text);font-size:28px">{{ user.username|display_name }}</h1>
-            <p style="margin:8px 0 0 0;color:var(--muted);font-size:14px">Joined {{ user.created_at.strftime('%B %d, %Y') }}</p>
-            {% if user.bio %}
-                <p style="margin:8px 0 0 0;color:var(--text);font-size:14px">{{ user.bio }}</p>
-            {% endif %}
-            <div style="display:flex;gap:20px;margin-top:12px;font-weight:600;color:var(--text);font-size:13px">
-                <span><i class="fas fa-file-alt" style="color:var(--primary)"></i> {{ posts.total }} Posts</span>
-                <span><i class="fas fa-users" style="color:var(--accent-warm)"></i> {{ user.followers.count() }} Followers</span>
-                <span><i class="fas fa-user-friends" style="color:var(--primary)"></i> {{ user.following_users.count() }} Following</span>
+    <!-- INFO SECTION: What's on this profile -->
+    <div style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(255,107,53,0.02)); border: 1px solid var(--primary); border-radius: 12px;">
+        <h2 style="color: var(--primary); margin: 0 0 16px 0; font-size: 18px;"><i class="fas fa-info-circle"></i> Profile Information</h2>
+        <p style="color: var(--muted); margin: 0 0 12px 0;">This profile includes the following information:</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <!-- Row 1 -->
+            <div style="padding: 12px; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--primary);">
+                <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    <i class="fas fa-image" style="color: var(--primary); margin-right: 6px;"></i> Avatar/Profile Picture
+                </div>
+                <p style="margin: 0; color: var(--muted); font-size: 12px;">The user's profile image</p>
+            </div>
+            
+            <div style="padding: 12px; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--primary);">
+                <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    <i class="fas fa-user" style="color: var(--primary); margin-right: 6px;"></i> Username
+                </div>
+                <p style="margin: 0; color: var(--muted); font-size: 12px;">Their display name</p>
+            </div>
+            
+            <!-- Row 2 -->
+            <div style="padding: 12px; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--accent-warm);">
+                <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    <i class="fas fa-calendar" style="color: var(--accent-warm); margin-right: 6px;"></i> Join Date
+                </div>
+                <p style="margin: 0; color: var(--muted); font-size: 12px;">When they joined (e.g., "Joined January 3, 2026")</p>
+            </div>
+            
+            <div style="padding: 12px; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--accent-warm);">
+                <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    <i class="fas fa-quote-left" style="color: var(--accent-warm); margin-right: 6px;"></i> Bio
+                </div>
+                <p style="margin: 0; color: var(--muted); font-size: 12px;">Their personal bio/about section</p>
+            </div>
+            
+            <!-- Row 3 -->
+            <div style="padding: 12px; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--primary);">
+                <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    <i class="fas fa-chart-bar" style="color: var(--primary); margin-right: 6px;"></i> Stats
+                </div>
+                <p style="margin: 0; color: var(--muted); font-size: 12px;">Posts count, Followers & Following</p>
+            </div>
+            
+            <div style="padding: 12px; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--accent-warm);">
+                <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    <i class="fas fa-share-alt" style="color: var(--accent-warm); margin-right: 6px;"></i> Interaction Buttons
+                </div>
+                <p style="margin: 0; color: var(--muted); font-size: 12px;">Follow, Message, and view network</p>
             </div>
         </div>
+    </div>
+
+    <!-- PROFILE INFORMATION SECTION -->
+    <!-- Avatar/Profile Picture - The follower's profile image -->
+    <!-- Username - Their display name -->
+    <!-- Join Date - When they joined -->
+    <!-- Bio - Their personal bio/about section -->
+    <!-- Stats - Their follower/following counts and number of posts -->
+    
+    <!-- Profile Header -->
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:28px;background:linear-gradient(135deg,rgba(0,212,255,0.08),rgba(255,107,53,0.04));padding:24px;border-radius:14px;border:1px solid rgba(0,212,255,0.1)">
+        <!-- Avatar/Profile Picture -->
+        <img src="{{ avatar_url(user,128) }}" alt="avatar" style="width:100px;height:100px;border-radius:12px;object-fit:cover;border:3px solid var(--primary)">
+        
+        <div style="flex:1">
+            <!-- Username - Their display name -->
+            <h1 style="margin:0;color:var(--text);font-size:28px">{{ user.username|display_name }}</h1>
+            
+            <!-- Join Date - When they joined (e.g., "Joined January 3, 2026") -->
+            <p style="margin:8px 0 0 0;color:var(--muted);font-size:14px"><i class="fas fa-calendar"></i> Joined {{ user.created_at.strftime('%B %d, %Y') }}</p>
+            
+            <!-- Bio - Their personal bio/about section (if they filled it in) -->
+            {% if user.bio %}
+                <p style="margin:8px 0 0 0;color:var(--text);font-size:14px"><i class="fas fa-quote-left" style="color:var(--primary);margin-right:6px"></i>{{ user.bio }}</p>
+            {% endif %}
+            
+            <!-- Stats - Their follower/following counts and number of posts -->
+            <div style="display:flex;gap:20px;margin-top:12px;font-weight:600;color:var(--text);font-size:13px">
+                <span><i class="fas fa-file-alt" style="color:var(--primary)"></i> <strong>{{ posts.total }}</strong> Posts</span>
+                <a href="{{ url_for('view_followers', user_id=user.id) }}" style="color:var(--text);text-decoration:none;cursor:pointer;transition:0.2s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text)'"><i class="fas fa-users" style="color:var(--accent-warm)"></i> <strong>{{ user.followers.count() }}</strong> Followers</a>
+                <a href="{{ url_for('view_following', user_id=user.id) }}" style="color:var(--text);text-decoration:none;cursor:pointer;transition:0.2s" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text)'"><i class="fas fa-user-friends" style="color:var(--primary)"></i> <strong>{{ user.following_users.count() }}</strong> Following</a>
+            </div>
+        </div>
+        
+        <!-- INTERACTION BUTTONS SECTION -->
+        <!-- Follow/Unfollow button - To manage following them -->
+        <!-- Message button - To send them a direct message -->
+        <!-- Links to their followers/following - To see their network -->
         {% if current_user.is_authenticated and user.id != current_user.id %}
-            <button class="btn-follow" onclick="toggleFollow(this, {{ user.id }})" {% if is_following %}style="border-color:var(--primary)"{% endif %}>
-                <i class="fas fa-{% if is_following %}check{% else %}user-plus{% endif %}"></i>
-                <span>{% if is_following %}Following{% else %}Follow{% endif %}</span>
-            </button>
+            <div style="display: flex; gap: 8px; flex-direction: column;">
+                <button class="btn-follow" onclick="toggleFollow(this, {{ user.id }})" {% if is_following %}style="border-color:var(--primary)"{% endif %} title="{% if is_following %}Unfollow{% else %}Send follow request{% endif %}">
+                    <i class="fas fa-{% if is_following %}check{% else %}user-plus{% endif %}"></i>
+                    <span>{% if is_following %}Following{% else %}Follow{% endif %}</span>
+                </button>
+                <a href="/messages/{{ user.id }}" class="btn-follow" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;" title="Send a message">
+                    <i class="fas fa-envelope"></i>
+                    <span>Message</span>
+                </a>
+            </div>
         {% endif %}
     </div>
 
-    <h2 style="color:var(--text);margin:24px 0 16px 0">Posts by {{ user.username|display_name }}</h2>
+    <!-- Filter and Search Section -->
+    <div style="margin-bottom: 24px; padding: 16px; background: var(--bg-light); border-radius: 12px;">
+        <h3 style="color: var(--text); margin-top: 0; margin-bottom: 16px;">Filter Posts</h3>
+        
+        <!-- Search Posts -->
+        <form method="get" style="display: flex; gap: 8px; margin-bottom: 16px;">
+            <input type="hidden" name="username" value="{{ user.username }}">
+            <input type="text" name="search" placeholder="Search posts..." value="{{ search_query }}" style="flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text); font-family: inherit;">
+            <button type="submit" class="btn-primary" style="width: auto; padding: 10px 16px;">
+                <i class="fas fa-search"></i> Search
+            </button>
+            {% if search_query %}
+                <a href="{{ url_for('user_profile', username=user.username) }}" class="btn-secondary" style="width: auto; padding: 10px 16px; text-decoration: none;">Clear</a>
+            {% endif %}
+        </form>
+        
 
+        <!-- Tag Filter -->
+        {% if user_tags %}
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <span style="color: var(--muted); font-size: 12px; font-weight: 600; display: flex; align-items: center;">Tags:</span>
+                {% for tag in user_tags %}
+                    <a href="{{ url_for('user_profile', username=user.username, tag=tag) }}" 
+                       style="padding: 6px 12px; border-radius: 6px; background: {% if tag == current_tag %}var(--primary){% else %}var(--bg-card){% endif %}; color: {% if tag == current_tag %}#fff{% else %}var(--text){% endif %}; text-decoration: none; font-size: 12px; border: 1px solid {% if tag == current_tag %}var(--primary){% else %}var(--border){% endif %};">
+                        {{ tag }}
+                    </a>
+                {% endfor %}
+                {% if current_tag %}
+                    <a href="{{ url_for('user_profile', username=user.username) }}" style="padding: 6px 12px; border-radius: 6px; background: var(--bg-card); color: var(--text); text-decoration: none; font-size: 12px; border: 1px solid var(--border);">Clear Filter</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- INFO SECTION: What's in the Posts Section -->
+    <div style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(255,107,53,0.02)); border: 1px solid var(--accent-warm); border-radius: 12px;">
+        <h2 style="color: var(--accent-warm); margin: 0 0 16px 0; font-size: 18px;"><i class="fas fa-file-alt"></i> Posts Section</h2>
+        <p style="color: var(--muted); margin: 0 0 12px 0;">Each post displays the following information:</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <!-- Row 1 -->
+            <div style="padding: 12px; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--accent-warm);">
+                <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    <i class="fas fa-heading" style="color: var(--accent-warm); margin-right: 6px;"></i> Post Title
+                </div>
+                <p style="margin: 0; color: var(--muted); font-size: 12px;">The blog post title</p>
+            </div>
+            
+            <div style="padding: 12px; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--primary);">
+                <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    <i class="fas fa-image" style="color: var(--primary); margin-right: 6px;"></i> Featured Image
+                </div>
+                <p style="margin: 0; color: var(--muted); font-size: 12px;">Post's featured image (if uploaded)</p>
+            </div>
+            
+            <!-- Row 2 -->
+            <div style="padding: 12px; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--accent-warm);">
+                <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    <i class="fas fa-align-left" style="color: var(--accent-warm); margin-right: 6px;"></i> Post Preview
+                </div>
+                <p style="margin: 0; color: var(--muted); font-size: 12px;">First 300 characters of content</p>
+            </div>
+            
+            <div style="padding: 12px; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--primary);">
+                <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    <i class="fas fa-tags" style="color: var(--primary); margin-right: 6px;"></i> Tags
+                </div>
+                <p style="margin: 0; color: var(--muted); font-size: 12px;">Post category tags (clickable)</p>
+            </div>
+            
+            <!-- Row 3 -->
+            <div style="padding: 12px; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--accent-warm);">
+                <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    <i class="fas fa-chart-line" style="color: var(--accent-warm); margin-right: 6px;"></i> Post Stats
+                </div>
+                <p style="margin: 0; color: var(--muted); font-size: 12px;">Views, Likes, and Comments count</p>
+            </div>
+            
+            <div style="padding: 12px; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--primary);">
+                <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    <i class="fas fa-clock" style="color: var(--primary); margin-right: 6px;"></i> Read Time
+                </div>
+                <p style="margin: 0; color: var(--muted); font-size: 12px;">Estimated reading time in minutes</p>
+            </div>
+        </div>
+    </div>
+
+    <h2 style="color:var(--text);margin:24px 0 16px 0">
+        {% if current_tag %}
+            Posts tagged "{{ current_tag }}"
+        {% elif search_query %}
+            Search results for "{{ search_query }}"
+        {% else %}
+            Posts by {{ user.username|display_name }}
+        {% endif %}
+    </h2>
+
+    <!-- POSTS SECTION -->
+    <!-- All their public posts - All the blog posts they've published, displayed with:
+         - Post title
+         - Featured image (if they added one)
+         - First 300 characters of the post content
+         - Tags
+         - Post stats (views, likes, comments)
+         - Read time estimate -->
+    
     <!-- Posts Feed -->
     <div class="posts-section">
         {% if posts and posts.items %}
             {% for post in posts.items %}
-                <article class="blog-post">
+                <article class="blog-post" style="padding: 20px; background: var(--bg-light); border-radius: 12px; border: 1px solid var(--border);">
                     <div class="post-header">
                         <div style="display:flex;gap:12px;align-items:center">
                             <img src="{{ avatar_url(post.author,40) }}" style="width:40px;height:40px;border-radius:8px;object-fit:cover" alt="avatar">
@@ -42,14 +226,44 @@
                         </div>
                     </div>
 
+                    <!-- Post title -->
                     <h3 style="margin:16px 0 10px 0;color:var(--text);font-size:20px;line-height:1.4">{{ post.title }}</h3>
                     
-                    <!-- Post Metadata -->
-                    <div class="post-meta">
-                        <div class="meta-item">
-                            <i class="fas fa-clock meta-icon"></i>
-                            <span>{{ (post.content|length / 200)|int }} min read</span>
+                    <!-- Post stats (views, likes, comments) & Read time estimate -->
+                    <div class="post-meta" style="display: flex; gap: 20px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+                        <div class="meta-item" style="display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px;">
+                            <i class="fas fa-clock"></i>
+                            <span><strong>{{ (post.content|length / 200)|int }}</strong> min read</span>
                         </div>
+                        <div class="meta-item" style="display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px;">
+                            <i class="fas fa-eye"></i>
+                            <span><strong>{{ post.views|length }}</strong> views</span>
+                        </div>
+                        <div class="meta-item" style="display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px;">
+                            <i class="fas fa-heart" style="color: var(--accent-warm);"></i>
+                            <span><strong>{{ post.likes|length }}</strong> likes</span>
+                        </div>
+                        <div class="meta-item" style="display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px;">
+                            <i class="fas fa-comments"></i>
+                            <span><strong>{{ post.comments|length }}</strong> comments</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Featured image (if they added one) -->
+                    {% if post.image_filename or post.image_data %}
+                        <div class="post-image" style="margin-bottom: 16px; border-radius: 8px; overflow: hidden;">
+                            {% if post.image_filename %}
+                                <img src="{{ url_for('static', filename='uploads/' ~ post.image_filename) }}" alt="post image" style="width: 100%; height: auto; object-fit: cover;">
+                            {% elif post.image_data %}
+                                <img src="data:image/*;base64,{{ post.image_data }}" alt="post image" style="width: 100%; height: auto; object-fit: cover;">
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <!-- First 300 characters of the post content -->
+                    <div class="post-content" style="color: var(--text); line-height: 1.6; margin-bottom: 16px;">{{ post.content[:300] }}...</div>
+
+                    <!-- Tags -->
                         <div class="meta-item">
                             <i class="fas fa-eye meta-icon"></i>
                             <span>{{ post.views|length }} views</span>
@@ -92,19 +306,19 @@
     {% if posts and posts.pages and posts.pages > 1 %}
         <div style="display:flex;gap:8px;justify-content:center;margin-top:18px">
             {% if posts.has_prev %}
-                <a href="{{ url_for('user_profile', username=user.username, page=posts.prev_num) }}" class="btn-primary" style="width:auto;padding:8px 10px">Prev</a>
+                <a href="{{ url_for('user_profile', username=user.username, page=posts.prev_num, tag=current_tag, search=search_query) }}" class="btn-primary" style="width:auto;padding:8px 10px">Prev</a>
             {% endif %}
 
             {% for p in range(1, posts.pages + 1) %}
                 {% if p == posts.page %}
                     <span style="padding:8px 10px;border-radius:8px;background:var(--primary);color:#fff;font-weight:600">{{ p }}</span>
                 {% else %}
-                    <a href="{{ url_for('user_profile', username=user.username, page=p) }}" style="padding:8px 10px;border-radius:8px;background:transparent;color:var(--text);border:1px solid rgba(2,6,23,0.04);text-decoration:none">{{ p }}</a>
+                    <a href="{{ url_for('user_profile', username=user.username, page=p, tag=current_tag, search=search_query) }}" style="padding:8px 10px;border-radius:8px;background:transparent;color:var(--text);border:1px solid rgba(2,6,23,0.04);text-decoration:none">{{ p }}</a>
                 {% endif %}
             {% endfor %}
 
             {% if posts.has_next %}
-                <a href="{{ url_for('user_profile', username=user.username, page=posts.next_num) }}" class="btn-primary" style="width:auto;padding:8px 10px">Next</a>
+                <a href="{{ url_for('user_profile', username=user.username, page=posts.next_num, tag=current_tag, search=search_query) }}" class="btn-primary" style="width:auto;padding:8px 10px">Next</a>
             {% endif %}
         </div>
     {% endif %}
