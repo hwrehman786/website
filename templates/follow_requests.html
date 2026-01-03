@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="center-panel">
+    <h2 style="color: var(--text); margin-bottom: 20px;">Follow Requests</h2>
+    
+    {% if requests and requests.items %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for req in requests.items %}
+                <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--bg-light); border-radius: 12px; border: 1px solid var(--border);">
+                    <img src="{{ avatar_url(req.follower, 48) }}" alt="avatar" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover;">
+                    
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; color: var(--text);">
+                            <a href="{{ url_for('user_profile', username=req.follower.username) }}" style="color: var(--text); text-decoration: none;">
+                                {{ req.follower.username|display_name }}
+                            </a>
+                        </div>
+                        <div style="color: var(--muted); font-size: 12px;">
+                            Sent {{ req.created_at.strftime('%b %d, %Y') }}
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-primary" onclick="acceptFollow(this, {{ req.id }})" style="width: auto; padding: 8px 16px; font-size: 12px;">
+                            <i class="fas fa-check"></i> Accept
+                        </button>
+                        <button class="btn-secondary" onclick="rejectFollow(this, {{ req.id }})" style="width: auto; padding: 8px 16px; font-size: 12px;">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        {% if requests.pages > 1 %}
+            <div style="display: flex; gap: 8px; justify-content: center; margin-top: 20px;">
+                {% if requests.has_prev %}
+                    <a href="{{ url_for('follow_requests', page=requests.prev_num) }}" class="btn-secondary" style="width: auto; padding: 8px 12px;">← Prev</a>
+                {% endif %}
+                
+                {% for p in range(1, requests.pages + 1) %}
+                    {% if p == requests.page %}
+                        <span style="padding: 8px 12px; border-radius: 8px; background: var(--primary); color: #fff; font-weight: 600;">{{ p }}</span>
+                    {% else %}
+                        <a href="{{ url_for('follow_requests', page=p) }}" class="btn-secondary" style="width: auto; padding: 8px 12px;">{{ p }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if requests.has_next %}
+                    <a href="{{ url_for('follow_requests', page=requests.next_num) }}" class="btn-secondary" style="width: auto; padding: 8px 12px;">Next →</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <div style="padding: 40px; text-align: center; color: var(--muted);">
+            <i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; display: block; margin-bottom: 12px;"></i>
+            <p>No follow requests yet</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function acceptFollow(btn, followId) {
+    fetch(`/api/accept_follow/${followId}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                btn.closest('div').parentElement.parentElement.style.opacity = '0.5';
+                setTimeout(() => location.reload(), 500);
+            } else {
+                alert(data.error || 'Error accepting follow request');
+            }
+        })
+        .catch(e => alert('Error: ' + e));
+}
+
+function rejectFollow(btn, followId) {
+    if (confirm('Reject this follow request?')) {
+        fetch(`/api/reject_follow/${followId}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    btn.closest('div').parentElement.parentElement.style.opacity = '0.5';
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    alert(data.error || 'Error rejecting follow request');
+                }
+            })
+            .catch(e => alert('Error: ' + e));
+    }
+}
+</script>
+{% endblock %}
