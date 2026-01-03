@@ -1,0 +1,217 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="messages-grid">
+        <!-- Message list sidebar -->
+        <div class="conversations-sidebar">
+            <h2>Messages</h2>
+            <div class="conversations-list">
+                {% for msg in conversations.items %}
+                    {% if msg.sender_id == current_user.id %}
+                        {% set other_user = msg.recipient %}
+                    {% else %}
+                        {% set other_user = msg.sender %}
+                    {% endif %}
+                    <a href="/messages/{{ other_user.id }}" class="conversation-item">
+                        <div class="conv-avatar">
+                            {% if other_user.avatar %}
+                            <img src="{{ other_user.avatar }}" alt="{{ other_user.username }}">
+                            {% else %}
+                            <div class="avatar-placeholder">{{ other_user.username[0].upper() }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="conv-info">
+                            <div class="conv-name">{{ other_user.username }}</div>
+                            <div class="conv-preview">{{ msg.body[:40] }}...</div>
+                        </div>
+                        <div class="conv-time">{{ msg.created_at.strftime('%H:%M') }}</div>
+                    </a>
+                {% endfor %}
+            </div>
+
+            {% if conversations.pages > 1 %}
+            <div class="conv-pagination">
+                {% if conversations.has_prev %}
+                <a href="{{ url_for('messages', page=conversations.prev_num) }}">← Prev</a>
+                {% endif %}
+                {% if conversations.has_next %}
+                <a href="{{ url_for('messages', page=conversations.next_num) }}">Next →</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Chat area -->
+        <div class="chat-area">
+            {% if is_blocked %}
+            <div class="blocked-message">
+                <h3>This user is blocked</h3>
+                <p>You cannot message users you've blocked.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.messages-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 2rem auto;
+    min-height: 60vh;
+}
+
+.conversations-sidebar {
+    background: #faf7f5;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border-left: 4px solid #00d4ff;
+}
+
+.conversations-sidebar h2 {
+    margin-top: 0;
+    color: #222;
+    border-bottom: 2px solid #00d4ff;
+    padding-bottom: 1rem;
+}
+
+.conversations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: calc(60vh - 100px);
+    overflow-y: auto;
+}
+
+.conversation-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.conversation-item:hover {
+    background: #fff9f5;
+    border-left-color: #ff6b35;
+    transform: translateX(4px);
+}
+
+.conv-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.conv-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    font-weight: 600;
+    color: #00d4ff;
+}
+
+.conv-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.conv-name {
+    font-weight: 600;
+    color: #222;
+}
+
+.conv-preview {
+    font-size: 0.85rem;
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.conv-time {
+    font-size: 0.75rem;
+    color: #bbb;
+    flex-shrink: 0;
+}
+
+.chat-area {
+    background: #faf7f5;
+    border-radius: 12px;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+}
+
+.blocked-message {
+    text-align: center;
+    padding: 2rem;
+    background: #ffe6e6;
+    border-radius: 8px;
+    border-left: 4px solid #ff6b35;
+}
+
+.blocked-message h3 {
+    color: #d32f2f;
+    margin-top: 0;
+}
+
+.blocked-message p {
+    color: #666;
+}
+
+.conv-pagination {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+}
+
+.conv-pagination a {
+    padding: 0.5rem 0.75rem;
+    background: white;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #00d4ff;
+    transition: background 0.2s;
+}
+
+.conv-pagination a:hover {
+    background: #f0f0f0;
+}
+
+@media (max-width: 768px) {
+    .messages-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .conversations-sidebar {
+        order: 2;
+    }
+    
+    .chat-area {
+        order: 1;
+    }
+}
+</style>
+{% endblock %}
