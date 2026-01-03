@@ -1,39 +1,65 @@
 {% extends "layout.html" %}
 {% block content %}
 <div class="form-container">
-    <h2>Create a New Post</h2>
+    <h2><i class="fas fa-pen-fancy"></i> Create a New Post</h2>
     <form method="post" enctype="multipart/form-data">
+        <!-- Title -->
         <div class="input-group">
-            <input type="text" name="title" placeholder="Post Title" required>
+            <label>Post Title</label>
+            <input type="text" name="title" placeholder="Enter an engaging title for your post..." required>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+
+        <!-- Content Editor with Preview -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
             <div>
-                <label style="font-size:13px;color:var(--muted)">Write (Markdown supported)</label>
                 <div class="input-group">
-                    <textarea id="contentEditor" name="content" placeholder="Write your content here..." rows="14" required></textarea>
+                    <label><i class="fas fa-keyboard"></i> Write Your Content (Markdown supported)</label>
+                    <textarea id="contentEditor" name="content" placeholder="Write your article content here... Markdown is supported!" required></textarea>
                 </div>
             </div>
             <div>
-                <label style="font-size:13px;color:var(--muted)">Live Preview</label>
-                <div id="mdPreview" style="background:rgba(255,255,255,0.02);min-height:220px;padding:12px;border-radius:8px;color:var(--text);overflow:auto"></div>
+                <div class="input-group">
+                    <label><i class="fas fa-eye"></i> Live Preview</label>
+                    <div id="mdPreview" style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);min-height:300px;padding:14px;border-radius:8px;color:var(--text);overflow:auto;line-height:1.6"></div>
+                </div>
             </div>
         </div>
-            <div class="input-group">
-                <input type="text" name="tags" placeholder="Tags (comma separated)">
-            </div>
-            <div class="input-group">
-                <label style="font-size:13px;color:var(--muted)">Publish date/time (optional)</label>
-                <input type="datetime-local" name="publish_at" placeholder="Publish at">
-            </div>
-            <div style="margin-bottom:12px">
-                <label><input type="checkbox" name="draft"> Save as draft</label>
-            </div>
-        <div class="file-upload" id="dropZone" style="border:2px dashed rgba(255,255,255,0.2);padding:20px;border-radius:8px;text-align:center;cursor:pointer;transition:0.2s">
-            <label for="image"><i class="fas fa-cloud-upload-alt"></i> Drag image here or click to upload</label>
-            <input type="file" id="image" name="image" accept="image/*" style="display:none">
-            <div id="imagePreview" style="margin-top:12px"></div>
+
+        <!-- Tags -->
+        <div class="input-group">
+            <label><i class="fas fa-tags"></i> Tags</label>
+            <input type="text" name="tags" placeholder="Enter tags separated by commas (e.g. security, tutorial, cybersecurity)">
         </div>
-        <button type="submit" class="btn-primary">Publish Post</button>
+
+        <!-- Publish Settings -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+            <div class="input-group">
+                <label><i class="fas fa-clock"></i> Schedule Publish (Optional)</label>
+                <input type="datetime-local" name="publish_at">
+            </div>
+            <div class="input-group" style="justify-content:flex-end">
+                <p style="margin:0;color:var(--muted);font-size:13px;margin-top:auto">Posts are published immediately unless scheduled for later</p>
+            </div>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="input-group">
+            <label><i class="fas fa-image"></i> Featured Image</label>
+            <div class="file-upload" id="dropZone" style="border:2px dashed rgba(0,212,255,0.3);padding:30px;border-radius:8px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(0,212,255,0.02)">
+                <label for="image" style="cursor:pointer">
+                    <i class="fas fa-cloud-upload-alt" style="font-size:32px;color:var(--primary);margin-bottom:12px;display:block"></i>
+                    <p style="margin:0;color:var(--text);font-weight:600">Drag image here or click to upload</p>
+                    <p style="margin:6px 0 0 0;color:var(--muted);font-size:12px">Supported formats: PNG, JPG, GIF</p>
+                </label>
+                <input type="file" id="image" name="image" accept="image/*" style="display:none">
+                <div id="imagePreview" style="margin-top:12px"></div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn-primary" style="margin-top:20px;padding:14px 24px;font-size:16px">
+            <i class="fas fa-paper-plane"></i> Publish Post
+        </button>
     </form>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </div>
