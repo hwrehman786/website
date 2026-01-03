@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="center-panel">
+    <div style="margin-bottom:24px">
+        <h1 style="color:var(--text);margin:0 0 8px 0"><i class="fas fa-fire" style="color:var(--accent-warm)"></i> Trending Now</h1>
+        <p style="color:var(--muted);margin:0">Most liked posts from our community</p>
+    </div>
+
+    <div class="posts-section">
+        {% if posts and posts.items %}
+            {% for post in posts.items %}
+                <article class="blog-post">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                        <div class="post-header" style="width:100%;margin-bottom:0;border-bottom:none;padding-bottom:0">
+                            <div style="display:flex;gap:12px;align-items:center">
+                                <img src="{{ avatar_url(post.author,40) }}" style="width:40px;height:40px;border-radius:8px;object-fit:cover" alt="avatar">
+                                <div>
+                                    <div style="font-weight:700;color:var(--text)">{{ post.author.username|display_name }}</div>
+                                    <div style="color:var(--muted);font-size:12px">{{ post.published_at.strftime('%b %d, %Y') if post.published_at else '' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="trending-badge" style="margin-left:auto">
+                            <i class="fas fa-fire"></i> {{ post.likes|length }} Likes
+                        </div>
+                    </div>
+
+                    <h3 style="margin:16px 0 10px 0;color:var(--text);font-size:20px;line-height:1.4">{{ post.title }}</h3>
+                    
+                    <!-- Post Metadata -->
+                    <div class="post-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-clock meta-icon"></i>
+                            <span>{{ (post.content|length / 200)|int }} min read</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-eye meta-icon"></i>
+                            <span>{{ post.views|length }} views</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-comment meta-icon"></i>
+                            <span>{{ post.comments|length }} comments</span>
+                        </div>
+                    </div>
+                    
+                    {% if post.image_filename or post.image_data %}
+                        <div class="post-image">
+                            {% if post.image_filename %}
+                                <img src="{{ url_for('static', filename='uploads/' ~ post.image_filename) }}" alt="post image">
+                            {% elif post.image_data %}
+                                <img src="data:image/*;base64,{{ post.image_data }}" alt="post image">
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="post-content">{{ post.content|md }}</div>
+
+                    {% if post.tags %}
+                        <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px">
+                            {% for t in post.tags.split(',') %}
+                                <a href="{{ url_for('posts_by_tag', tag=t.strip()) }}" class="tag-badge">{{ t.strip() }}</a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Post Actions -->
+                    <div class="post-actions">
+                        <button class="btn-like" onclick="toggleLike(this)">
+                            <i class="fas fa-heart"></i>
+                            <span>Like</span>
+                            <span style="font-size:11px;opacity:0.8">(0)</span>
+                        </button>
+                        <button class="post-action-btn" onclick="toggleBookmark(this, {{ post.id }})">
+                            <i class="fas fa-bookmark"></i>
+                            Save
+                        </button>
+                    </div>
+                </article>
+            {% endfor %}
+        {% else %}
+            <div style="padding:40px;text-align:center;color:var(--muted)">
+                <i class="fas fa-fire" style="font-size:48px;opacity:0.3;display:block;margin-bottom:12px"></i>
+                <p>No trending posts yet. Check back soon!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if posts and posts.pages and posts.pages > 1 %}
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:18px">
+            {% if posts.has_prev %}
+                <a href="{{ url_for('trending', page=posts.prev_num) }}" class="btn-primary" style="width:auto;padding:8px 10px">Prev</a>
+            {% endif %}
+
+            {% for p in range(1, posts.pages + 1) %}
+                {% if p == posts.page %}
+                    <span style="padding:8px 10px;border-radius:8px;background:var(--primary);color:#fff;font-weight:600">{{ p }}</span>
+                {% else %}
+                    <a href="{{ url_for('trending', page=p) }}" style="padding:8px 10px;border-radius:8px;background:transparent;color:var(--text);border:1px solid rgba(2,6,23,0.04);text-decoration:none">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if posts.has_next %}
+                <a href="{{ url_for('trending', page=posts.next_num) }}" class="btn-primary" style="width:auto;padding:8px 10px">Next</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
