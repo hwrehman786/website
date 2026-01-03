@@ -35,7 +35,12 @@
                         </span>
                     </div>
                     
-                    <button class="btn-follow" onclick="toggleFollow({{ user.id }}, this)">Follow</button>
+                    <div class="recommend-actions">
+                        <button class="btn-follow" onclick="toggleFollow({{ user.id }}, this)">Follow</button>
+                        <a href="/messages/{{ user.id }}" class="btn-follow" style="text-decoration: none; display: flex; align-items: center; justify-content: center;" title="Send a message">
+                            <i class="fas fa-envelope"></i> Message
+                        </a>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
@@ -170,6 +175,29 @@
     color: #999;
     font-size: 0.75rem;
     font-style: normal;
+}
+
+.recommend-actions {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.recommend-actions .btn-follow {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: #00d4ff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.recommend-actions .btn-follow:hover {
+    background: #00b8d4;
+    transform: scale(1.02);
 }
 
 .btn-follow {
