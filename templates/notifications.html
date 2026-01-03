@@ -1,0 +1,234 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="notifications-container">
+        <div class="notifications-header">
+            <h1>Notifications</h1>
+            {% if notifications.total > 0 %}
+            <div class="notification-controls">
+                <button class="btn-secondary" onclick="markAllAsRead()">Mark all as read</button>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if notifications.items %}
+            <div class="notifications-list">
+                {% for notif in notifications.items %}
+                <div class="notification-item {% if not notif.is_read %}unread{% endif %}" data-notif-id="{{ notif.id }}">
+                    <div class="notif-icon">
+                        {% if notif.type == 'like' %}
+                            <span class="icon-heart">❤️</span>
+                        {% elif notif.type == 'comment' %}
+                            <span class="icon-comment">💬</span>
+                        {% elif notif.type == 'follow' %}
+                            <span class="icon-follow">👤</span>
+                        {% elif notif.type == 'reply' %}
+                            <span class="icon-reply">↩️</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="notif-content">
+                        <a href="/profile/{{ notif.actor.username }}" class="notif-actor">{{ notif.actor.username }}</a>
+                        
+                        {% if notif.type == 'like' %}
+                            <span class="notif-text">liked your post</span>
+                        {% elif notif.type == 'comment' %}
+                            <span class="notif-text">commented on your post</span>
+                        {% elif notif.type == 'follow' %}
+                            <span class="notif-text">started following you</span>
+                        {% elif notif.type == 'reply' %}
+                            <span class="notif-text">replied to your comment</span>
+                        {% endif %}
+                        
+                        {% if notif.post %}
+                        <div class="notif-preview">{{ notif.post.content[:60] }}...</div>
+                        {% endif %}
+                        
+                        <div class="notif-time">{{ notif.created_at.strftime('%b %d at %H:%M') }}</div>
+                    </div>
+
+                    {% if notif.post %}
+                    <a href="/post/{{ notif.post.id }}" class="notif-action">View post</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if notifications.pages > 1 %}
+            <div class="pagination">
+                {% if notifications.has_prev %}
+                <a href="{{ url_for('notifications', page=notifications.prev_num) }}" class="btn-secondary">← Previous</a>
+                {% endif %}
+                
+                <span class="page-info">Page {{ notifications.page }} of {{ notifications.pages }}</span>
+                
+                {% if notifications.has_next %}
+                <a href="{{ url_for('notifications', page=notifications.next_num) }}" class="btn-secondary">Next →</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🔔</div>
+                <h2>No notifications yet</h2>
+                <p>When someone likes your post, comments, or follows you, you'll see it here</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.notifications-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    background: #faf7f5;
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #00d4ff;
+    padding-bottom: 1rem;
+}
+
+.notifications-header h1 {
+    margin: 0;
+    color: #222;
+}
+
+.notification-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.notification-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: white;
+    border-left: 4px solid #ff6b35;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.notification-item.unread {
+    background: #fff9f5;
+    box-shadow: 0 2px 8px rgba(0, 212, 255, 0.1);
+}
+
+.notification-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.15);
+}
+
+.notif-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.notif-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.notif-actor {
+    font-weight: 600;
+    color: #00d4ff;
+    text-decoration: none;
+}
+
+.notif-actor:hover {
+    text-decoration: underline;
+}
+
+.notif-text {
+    color: #555;
+    font-size: 0.95rem;
+}
+
+.notif-preview {
+    background: #f5f5f5;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
+.notif-time {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.notif-action {
+    padding: 0.5rem 1rem;
+    background: #00d4ff;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.notif-action:hover {
+    background: #00b8d4;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #666;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+    color: #222;
+    margin-bottom: 0.5rem;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ddd;
+}
+
+.page-info {
+    color: #666;
+    font-size: 0.9rem;
+}
+</style>
+
+<script>
+function markAllAsRead() {
+    fetch('/api/mark_all_read', {method: 'POST'})
+        .then(r => r.json())
+        .then(d => {
+            document.querySelectorAll('.notification-item').forEach(el => el.classList.remove('unread'));
+        });
+}
+</script>
+{% endblock %}
