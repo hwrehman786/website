@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container">
+<div class="container" style="padding: 0; margin: 0; max-width: 100%; width: 100%;">
     <div class="messages-grid">
         <!-- Message list sidebar -->
         <div class="conversations-sidebar">
@@ -13,7 +13,7 @@
                     {% else %}
                         {% set other_user = msg.sender %}
                     {% endif %}
-                    <a href="/messages/{{ other_user.id }}" class="conversation-item">
+                    <div class="conversation-item" onclick="loadChat({{ other_user.id }}, '{{ other_user.username }}')" style="position: relative; cursor: pointer;">
                         <div class="conv-avatar">
                             {% if other_user.avatar %}
                             <img src="{{ other_user.avatar }}" alt="{{ other_user.username }}">
@@ -26,7 +26,11 @@
                             <div class="conv-preview">{{ msg.body[:40] }}...</div>
                         </div>
                         <div class="conv-time">{{ msg.created_at.strftime('%H:%M') }}</div>
-                    </a>
+                        <!-- Unread message badge -->
+                        {% if msg.sender_id != current_user.id and not msg.is_read %}
+                            <span style="position: absolute; top: 8px; right: 8px; background: var(--primary); color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600;">●</span>
+                        {% endif %}
+                    </div>
                 {% endfor %}
             </div>
 
@@ -43,12 +47,22 @@
         </div>
 
         <!-- Chat area -->
-        <div class="chat-area">
-            {% if is_blocked %}
-            <div class="blocked-message">
-                <h3>This user is blocked</h3>
-                <p>You cannot message users you've blocked.</p>
-            </div>
+        <div class="chat-area" id="chatArea">
+            {% if conversations.items|length > 0 %}
+                <div class="empty-state">
+                    <i class="fas fa-envelope-open"></i>
+                    <h3>Select a conversation</h3>
+                    <p>Click on a conversation to the left to start chatting</p>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h3>No messages yet</h3>
+                    <p>Visit someone's profile and click the "Message" button to start a conversation</p>
+                    <a href="/recommendations" class="btn-primary" style="text-decoration: none; display: inline-block; margin-top: 16px;">
+                        <i class="fas fa-compass"></i> Discover Users
+                    </a>
+                </div>
             {% endif %}
         </div>
     </div>
@@ -58,17 +72,26 @@
 .messages-grid {
     display: grid;
     grid-template-columns: 300px 1fr;
-    gap: 1rem;
-    max-width: 1200px;
-    margin: 2rem auto;
-    min-height: 60vh;
+    gap: 0;
+    width: 100vw;
+    height: calc(100vh - 120px);
+    margin: 0;
+    padding: 0;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .conversations-sidebar {
     background: #faf7f5;
-    border-radius: 12px;
+    border-radius: 0;
     padding: 1.5rem;
     border-left: 4px solid #00d4ff;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .conversations-sidebar h2 {
@@ -82,8 +105,30 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    max-height: calc(60vh - 100px);
+    flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+
+/* Conversations list scrollbar */
+.conversations-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.conversations-list::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 10px;
+}
+
+.conversations-list::-webkit-scrollbar-thumb {
+    background: #ff6b35;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.conversations-list::-webkit-scrollbar-thumb:hover {
+    background: #d55a2b;
 }
 
 .conversation-item {
@@ -155,12 +200,182 @@
 
 .chat-area {
     background: #faf7f5;
-    border-radius: 12px;
-    padding: 2rem;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.chat-header {
+    padding: 16px;
+    border-bottom: 2px solid #f0f0f0;
     display: flex;
     align-items: center;
-    justify-content: center;
-    min-height: 60vh;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #ffffff, #fafafa);
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.messages-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: linear-gradient(to bottom, #faf7f5, white);
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar styling */
+.messages-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.messages-list::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 10px;
+    margin: 10px 0;
+}
+
+.messages-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #00d4ff, #0099cc);
+    border-radius: 10px;
+    border: 2px solid #f5f5f5;
+    transition: all 0.3s ease;
+}
+
+.messages-list::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #0099cc, #006ba3);
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+}
+
+/* Firefox scrollbar */
+.messages-list {
+    scrollbar-width: thin;
+    scrollbar-color: #00d4ff #f5f5f5;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message.sent {
+    align-items: flex-end;
+}
+
+.message-content {
+    background: linear-gradient(135deg, #00d4ff, #0099cc);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 18px;
+    max-width: 70%;
+    word-wrap: break-word;
+    box-shadow: 0 2px 8px rgba(0, 212, 255, 0.25);
+    line-height: 1.5;
+    font-size: 14px;
+    animation: messagePop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes messagePop {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.message.received .message-content {
+    background: white;
+    color: #222;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.message-content:hover {
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.35);
+}
+
+.message.received .message-content:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.message-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 4px;
+    font-size: 11px;
+}
+
+.message-time {
+    color: #999;
+}
+
+.delete-msg-btn {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.delete-msg-btn:hover {
+    opacity: 1;
+    color: #d32f2f;
+}
+
+.message-input-area {
+    padding: 16px;
+    border-top: 2px solid #e0e0e0;
+    display: flex;
+    gap: 12px;
+    background: white;
+    align-items: flex-end;
+    flex-shrink: 0;
+    min-height: 100px;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.message-input {
+    flex: 1 1 auto;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 20px;
+    background: #fafafa;
+    color: #222;
+    font-family: inherit;
+    resize: none;
+    min-width: 200px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.message-input:focus {
+    outline: none;
+    border-color: #00d4ff;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+}
+
+.message-input::placeholder {
+    color: #999;
 }
 
 .blocked-message {
@@ -169,6 +384,15 @@
     background: #ffe6e6;
     border-radius: 8px;
     border-left: 4px solid #ff6b35;
+}
+
+.blocked-message h3 {
+    color: #d32f2f;
+    margin-top: 0;
+}
+
+.blocked-message p {
+    color: #666;
 }
 
 .blocked-message h3 {
@@ -213,5 +437,256 @@
         order: 1;
     }
 }
+
+.empty-state {
+    text-align: center;
+    color: var(--muted);
+    padding: 40px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-state i {
+    font-size: 48px;
+    opacity: 0.3;
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    color: var(--text);
+    margin: 0 0 8px 0;
+}
+
+.empty-state p {
+    margin: 0;
+}
+
+.conversation-item {
+    cursor: pointer;
+}
+
+.conversation-item:active {
+    background: #fff0e6 !important;
+}
+
+/* Highlight active Messages nav link */
+.glass-nav a[href*="/messages"] {
+    border-bottom: 3px solid #00d4ff;
+    color: #00d4ff;
+    font-weight: 600;
+}
 </style>
+
+<script>
+async function loadChat(userId, username) {
+    try {
+        const response = await fetch(`/api/get_messages/${userId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            displayChat(userId, username, data.messages);
+        }
+    } catch (error) {
+        console.error('Error loading chat:', error);
+    }
+}
+
+function displayChat(userId, username, messages) {
+    const chatArea = document.getElementById('chatArea');
+    
+    let html = '';
+    
+    // Header
+    html += '<div class="chat-header">';
+    html += '<div style="display: flex; align-items: center; gap: 12px; flex: 1;">';
+    html += '<div style="position: relative;">';
+    html += '<div style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 3px solid #00d4ff; background: linear-gradient(135deg, #00d4ff, #0099cc); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 20px;">' + username[0].toUpperCase() + '</div>';
+    html += '<span style="position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; background: #4caf50; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px #00d4ff;"></span>';
+    html += '</div>';
+    html += '<div>';
+    html += '<div style="font-weight: 700; color: #222; font-size: 16px;">' + username + '</div>';
+    html += '<div style="color: #999; font-size: 12px; margin-top: 2px;"><span style="display: inline-block; width: 8px; height: 8px; background: #4caf50; border-radius: 50%; margin-right: 6px;"></span>Active now</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '<div style="display: flex; gap: 8px;">';
+    html += '<button onclick="alert(\'Call feature coming soon!\');" style="background: linear-gradient(135deg, #00d4ff, #0099cc); border: none; color: white; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.3s;" title="Call" onmouseover="this.style.transform=\'scale(1.1)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+    html += '<i class="fas fa-phone"></i></button>';
+    html += '<button onclick="alert(\'Info coming soon!\');" style="background: #f0f0f0; border: none; color: #00d4ff; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.3s;" title="Info" onmouseover="this.style.transform=\'scale(1.1)\'" onmouseout="this.style.transform=\'scale(1)\'">';
+    html += '<i class="fas fa-info-circle"></i></button>';
+    html += '</div>';
+    html += '</div>';
+    
+    // Messages
+    html += '<div class="messages-list" id="messagesList">';
+    
+    if (messages && messages.length > 0) {
+        messages.forEach((msg, index) => {
+            const isSent = msg.is_sent;
+            const date = new Date(msg.created_at);
+            const time = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const dateStr = date.toLocaleDateString();
+            
+            // Add date separator if it's a different day
+            if (index === 0 || new Date(messages[index - 1].created_at).toLocaleDateString() !== dateStr) {
+                html += '<div style="text-align: center; margin: 16px 0; color: #999; font-size: 12px;">';
+                html += '<span style="background: white; padding: 0 8px;">' + dateStr + '</span>';
+                html += '</div>';
+            }
+            
+            html += '<div class="message ' + (isSent ? 'sent' : 'received') + '" data-message-id="' + msg.id + '" style="margin-top: 4px;">';
+            html += '<div style="display: flex; gap: 8px; align-items: flex-start; ' + (isSent ? 'flex-direction: row-reverse;' : '') + '">';
+            html += '<div style="flex: 1;">';
+            html += '<div class="message-content">' + msg.body.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') + '</div>';
+            html += '<div class="message-meta">';
+            html += '<span class="message-time" style="color: #999;" title="' + date.toLocaleString() + '">' + time + '</span>';
+            if (isSent) {
+                html += '<span style="color: #4caf50; font-size: 10px;" title="Delivered"><i class="fas fa-check-circle"></i></span>';
+            }
+            if (isSent) {
+                html += '<button class="delete-msg-btn" onclick="deleteMessage(' + msg.id + ', event)" title="Delete message" style="background: none; border: none; color: #999; cursor: pointer; padding: 0; font-size: 11px; opacity: 0.6; transition: opacity 0.2s;" onmouseover="this.style.opacity=\'1\'; this.style.color=\'#d32f2f\';" onmouseout="this.style.opacity=\'0.6\'; this.style.color=\'#999\';">';
+                html += '<i class="fas fa-trash"></i></button>';
+            }
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+        });
+    } else {
+        html += '<div style="text-align: center; padding: 40px; color: #999; margin: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">';
+        html += '<i class="fas fa-comments" style="font-size: 64px; opacity: 0.2; margin-bottom: 16px;"></i>';
+        html += '<p style="font-size: 16px; margin: 0; color: #999;">No messages yet</p>';
+        html += '<p style="font-size: 13px; margin: 4px 0 0 0; color: #bbb;">Say hi to start the conversation!</p>';
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    
+    // Input area
+    html += '<div class="message-input-area">';
+    html += '<textarea id="messageInput" placeholder="Type a message... (Ctrl+Enter to send)" class="message-input" rows="3" onkeydown="handleTyping(event, ' + userId + ')" autofocus></textarea>';
+    html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
+    html += '<button class="btn-primary" onclick="sendMessage(' + userId + ')" style="flex-shrink: 0; height: fit-content; padding: 12px 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, #00d4ff, #0099cc); color: white; font-weight: 600; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.transform=\'translateY(-2px)\'; this.style.boxShadow=\'0 4px 12px rgba(0,212,255,0.4)\';" onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'none\';" title="Send message (Ctrl+Enter)">';
+    html += '<i class="fas fa-paper-plane"></i> Send';
+    html += '</button>';
+    html += '<button type="button" onclick="addEmoji()" style="flex-shrink: 0; padding: 10px; background: #f0f0f0; border: 1px solid #e0e0e0; border-radius: 50%; color: #00d4ff; cursor: pointer; transition: 0.2s; font-size: 16px;" onmouseover="this.style.background=\'#e0e0e0\';" onmouseout="this.style.background=\'#f0f0f0\';" title="Add emoji">';
+    html += '<i class="fas fa-face-smile"></i>';
+    html += '</button>';
+    html += '</div>';
+    html += '</div>';
+    
+    chatArea.innerHTML = html;
+    
+    // Scroll to bottom
+    const messagesList = document.getElementById('messagesList');
+    if (messagesList) {
+        setTimeout(() => {
+            messagesList.scrollTop = messagesList.scrollHeight;
+        }, 100);
+    }
+}
+
+function sendMessage(recipientId) {
+    const body = document.getElementById('messageInput').value.trim();
+    if (!body) return;
+    
+    const sendBtn = document.querySelector('.message-input-area .btn-primary');
+    sendBtn.disabled = true;
+    sendBtn.style.opacity = '0.6';
+    
+    fetch(`/api/send_message/${recipientId}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ body })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('messageInput').value = '';
+            loadChat(recipientId, document.querySelector('.chat-header div:nth-child(2) div:first-child').textContent);
+            // Scroll to bottom after loading chat
+            setTimeout(() => {
+                const messagesList = document.getElementById('messagesList');
+                if (messagesList) {
+                    messagesList.scrollTop = messagesList.scrollHeight;
+                }
+            }, 50);
+        }
+    })
+    .finally(() => {
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = '1';
+    });
+}
+
+function handleTyping(e, recipientId) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        sendMessage(recipientId);
+    }
+}
+
+function addEmoji() {
+    const emojis = ['😊', '😂', '😍', '🥰', '😎', '🔥', '👍', '❤️', '✨', '🎉', '😮', '😢'];
+    const textarea = document.getElementById('messageInput');
+    if (!textarea) return;
+    
+    let emojiHtml = '<div style="position: fixed; bottom: 120px; right: 20px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">';
+    
+    emojis.forEach(emoji => {
+        emojiHtml += '<button type="button" onclick="insertEmoji(\'' + emoji + '\')" style="background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px; transition: 0.2s;" onmouseover="this.style.transform=\'scale(1.3)\';" onmouseout="this.style.transform=\'scale(1)\';">' + emoji + '</button>';
+    });
+    
+    emojiHtml += '</div>';
+    
+    // Remove existing emoji picker
+    const existing = document.querySelector('[data-emoji-picker]');
+    if (existing) existing.remove();
+    
+    const div = document.createElement('div');
+    div.setAttribute('data-emoji-picker', 'true');
+    div.innerHTML = emojiHtml;
+    document.body.appendChild(div);
+    
+    // Close on outside click
+    setTimeout(() => {
+        document.addEventListener('click', function closeEmojiPicker(e) {
+            if (!e.target.closest('[data-emoji-picker]') && !e.target.closest('.fa-face-smile')) {
+                document.querySelector('[data-emoji-picker]')?.remove();
+                document.removeEventListener('click', closeEmojiPicker);
+            }
+        });
+    }, 0);
+}
+
+function insertEmoji(emoji) {
+    const textarea = document.getElementById('messageInput');
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    
+    textarea.value = text.substring(0, start) + emoji + text.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+    textarea.focus();
+    
+    // Remove emoji picker
+    document.querySelector('[data-emoji-picker]')?.remove();
+}
+
+function deleteMessage(messageId, event) {
+    event.preventDefault();
+    if (confirm('Delete this message?')) {
+        fetch(`/api/delete_message/${messageId}`, {method: 'POST'})
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelector(`[data-message-id="${messageId}"]`).remove();
+            }
+        });
+    }
+}
+</script>
 {% endblock %}
