@@ -771,6 +771,52 @@ def is_following(user_id):
     return jsonify({'following': following})
 
 
+@app.route('/api/follow/<int:user_id>', methods=['POST'])
+@login_required
+def toggle_follow(user_id):
+    """Toggle follow/unfollow for a user (used by recommendations page)"""
+    user_to_follow = User.query.get_or_404(user_id)
+    
+    if user_to_follow.id == current_user.id:
+        return jsonify({'success': False, 'error': 'Cannot follow yourself'}), 400
+    
+    # Check if already following
+    existing = Follow.query.filter_by(
+        follower_id=current_user.id,
+        following_id=user_id
+    ).first()
+    
+    if existing:
+        # Unfollow - delete the follow relationship
+        db.session.delete(existing)
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'followed': False,
+            'message': 'Unfollowed successfully'
+        })
+    else:
+        # Follow - create new follow request (pending status)
+        new_follow = Follow(follower_id=current_user.id, following_id=user_id, status='pending')
+        db.session.add(new_follow)
+        
+        # Create notification for the user being followed
+        notif = Notification(
+            user_id=user_id,
+            actor_id=current_user.id,
+            type='follow'
+        )
+        db.session.add(notif)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'followed': True,
+            'message': 'Follow request sent'
+        })
+
+
 # ===== FOLLOW REQUEST MANAGEMENT =====
 @app.route('/follow_requests')
 @login_required
