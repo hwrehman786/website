@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,45 +8,156 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
 </head>
+
 <body class="auth-body">
     <div class="auth-background" aria-hidden="true">
         <!-- Premium gradient background -->
         <div class="auth-bg-gradient"></div>
-        <svg class="auth-bg-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <svg class="auth-bg-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"
+            xmlns="http://www.w3.org/2000/svg">
             <defs>
-                <linearGradient id="navyGrad" x1="0" x2="1">
-                    <stop offset="0%" stop-color="#020617"/>
-                    <stop offset="100%" stop-color="#021428"/>
+                <!-- Gradient definitions for modern look -->
+                <linearGradient id="personGrad1" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.8" />
+                    <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.6" />
                 </linearGradient>
-                <radialGradient id="sphereLight" cx="30%" cy="30%">
-                    <stop offset="0%" stop-color="#9ffeff" stop-opacity="0.95"/>
-                    <stop offset="55%" stop-color="#00d2ff" stop-opacity="0.4"/>
-                    <stop offset="100%" stop-color="#001420" stop-opacity="0.08"/>
-                </radialGradient>
-                <filter id="heavyBlur"><feGaussianBlur stdDeviation="40"/></filter>
+                <linearGradient id="personGrad2" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.8" />
+                    <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.6" />
+                </linearGradient>
+                <linearGradient id="personGrad3" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f9a8d4" stop-opacity="0.7" />
+                    <stop offset="100%" stop-color="#ec4899" stop-opacity="0.5" />
+                </linearGradient>
+                <filter id="softGlow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                    <feMerge>
+                        <feMergeNode in="coloredBlur" />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                </filter>
             </defs>
 
-            <rect width="100%" height="100%" fill="url(#navyGrad)" />
+            <!-- Animated People Illustrations -->
+            <g class="people-connecting" opacity="0.4">
+                <!-- Person 1 (Top Left) -->
+                <g class="person person-1">
+                    <!-- Avatar circle -->
+                    <circle cx="200" cy="150" r="35" fill="url(#personGrad1)" filter="url(#softGlow)">
+                        <animate attributeName="cy" values="150;145;150" dur="4s" repeatCount="indefinite" />
+                    </circle>
+                    <!-- Profile icon -->
+                    <circle cx="200" cy="145" r="12" fill="white" opacity="0.9" />
+                    <path d="M 200 155 Q 190 165 185 175 Q 200 170 200 170 Q 200 170 215 175 Q 210 165 200 155"
+                        fill="white" opacity="0.9" />
+                </g>
 
-            <!-- 3D floating liquid spheres on left -->
-            <g class="floating-spheres" filter="url(#heavyBlur)">
-                <g class="sphere s1">
-                    <circle cx="320" cy="300" r="220" fill="url(#sphereLight)" />
+                <!-- Person 2 (Center Right) -->
+                <g class="person person-2">
+                    <circle cx="500" cy="250" r="40" fill="url(#personGrad2)" filter="url(#softGlow)">
+                        <animate attributeName="cy" values="250;255;250" dur="5s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="500" cy="243" r="14" fill="white" opacity="0.9" />
+                    <path d="M 500 258 Q 488 270 482 282 Q 500 276 500 276 Q 500 276 518 282 Q 512 270 500 258"
+                        fill="white" opacity="0.9" />
+                    <!-- Chat bubble -->
+                    <rect x="545" y="230" width="60" height="35" rx="8" fill="white" opacity="0.7">
+                        <animate attributeName="opacity" values="0.5;0.8;0.5" dur="3s" repeatCount="indefinite" />
+                    </rect>
+                    <path d="M 545 255 L 538 260 L 545 265" fill="white" opacity="0.7" />
+                    <!-- Chat dots -->
+                    <circle cx="560" cy="247" r="3" fill="#a78bfa">
+                        <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="575" cy="247" r="3" fill="#a78bfa">
+                        <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" begin="0.3s"
+                            repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="590" cy="247" r="3" fill="#a78bfa">
+                        <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" begin="0.6s"
+                            repeatCount="indefinite" />
+                    </circle>
                 </g>
-                <g class="sphere s2">
-                    <circle cx="160" cy="150" r="90" fill="#002f3a" opacity="0.9" />
+
+                <!-- Person 3 (Bottom) -->
+                <g class="person person-3">
+                    <circle cx="300" cy="450" r="38" fill="url(#personGrad3)" filter="url(#softGlow)">
+                        <animate attributeName="cy" values="450;447;450" dur="4.5s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="300" cy="443" r="13" fill="white" opacity="0.9" />
+                    <path d="M 300 457 Q 289 468 284 479 Q 300 473 300 473 Q 300 473 316 479 Q 311 468 300 457"
+                        fill="white" opacity="0.9" />
                 </g>
-                <g class="sphere s3">
-                    <circle cx="520" cy="420" r="160" fill="rgba(0,210,255,0.08)" />
+
+                <!-- Person 4 (Top Right) -->
+                <g class="person person-4">
+                    <circle cx="420" cy="120" r="32" fill="url(#personGrad1)" filter="url(#softGlow)">
+                        <animate attributeName="cy" values="120;117;120" dur="3.8s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="420" cy="115" r="11" fill="white" opacity="0.9" />
+                    <path d="M 420 125 Q 411 134 407 143 Q 420 138 420 138 Q 420 138 433 143 Q 429 134 420 125"
+                        fill="white" opacity="0.9" />
+                </g>
+
+                <!-- Connection Lines (showing interaction) -->
+                <g class="connections" stroke-width="2" stroke-linecap="round" opacity="0.3">
+                    <!-- Line from Person 1 to Person 4 -->
+                    <path d="M 235 150 Q 327 100 385 120" stroke="#60a5fa" fill="none" stroke-dasharray="5,5">
+                        <animate attributeName="stroke-dashoffset" from="0" to="-10" dur="2s"
+                            repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.2;0.5;0.2" dur="4s" repeatCount="indefinite" />
+                    </path>
+
+                    <!-- Line from Person 2 to Person 3 -->
+                    <path d="M 475 280 Q 400 365 325 430" stroke="#a78bfa" fill="none" stroke-dasharray="5,5">
+                        <animate attributeName="stroke-dashoffset" from="0" to="-10" dur="2.5s"
+                            repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.2;0.5;0.2" dur="4.5s" repeatCount="indefinite" />
+                    </path>
+
+                    <!-- Line from Person 4 to Person 2 -->
+                    <path d="M 445 135 Q 472 192 490 220" stroke="#f9a8d4" fill="none" stroke-dasharray="5,5">
+                        <animate attributeName="stroke-dashoffset" from="0" to="-10" dur="2.2s"
+                            repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.2;0.5;0.2" dur="3.8s" repeatCount="indefinite" />
+                    </path>
+                </g>
+
+                <!-- Floating interaction icons -->
+                <g class="interaction-icons">
+                    <!-- Heart icon (likes) -->
+                    <path d="M 350 300 L 356 294 Q 360 290 364 294 L 370 300 L 360 310 Z" fill="#ec4899" opacity="0.5">
+                        <animate AttributeName="opacity" values="0.3;0.7;0.3" dur="3s" repeatCount="indefinite" />
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,-20; 0,-40" dur="6s"
+                            repeatCount="indefinite" />
+                        <animateTransform attributeName="transform" type="scale" values="1; 1.2; 0.8" dur="6s"
+                            repeatCount="indefinite" additive="sum" />
+                    </path>
+
+                    <!-- Message icon -->
+                    <rect x="240" y="320" width="25" height="18" rx="4" fill="#60a5fa" opacity="0.4">
+                        <animate attributeName="opacity" values="0.3;0.6;0.3" dur="4s" repeatCount="indefinite" />
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 5,-15; 10,-30"
+                            dur="7s" repeatCount="indefinite" />
+                    </rect>
+                    <path d="M 240 320 L 252 327 L 265 320" stroke="white" stroke-width="1.5" opacity="0.4">
+                        <animate attributeName="opacity" values="0.3;0.6;0.3" dur="4s" repeatCount="indefinite" />
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 5,-15; 10,-30"
+                            dur="7s" repeatCount="indefinite" />
+                    </path>
                 </g>
             </g>
 
-            <!-- subtle cyan light leaks -->
-            <g class="light-leaks">
-                <ellipse cx="1400" cy="120" rx="300" ry="80" fill="#001f2a" opacity="0.15" />
-                <ellipse cx="1200" cy="700" rx="360" ry="140" fill="#002b35" opacity="0.12" />
+            <!-- Subtle background circles for depth -->
+            <g opacity="0.15">
+                <circle cx="100" cy="500" r="80" fill="#ddd6fe">
+                    <animate attributeName="r" values="80;90;80" dur="8s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="550" cy="600" r="100" fill="#fce  7f3">
+                    <animate attributeName="r" values="100;110;100" dur="10s" repeatCount="indefinite" />
+                </circle>
             </g>
-        </svg>
+        </svg>>
     </div>
     <div class="auth-wrap">
         {% block content %}{% endblock %}
@@ -54,4 +166,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
+
 </html>
