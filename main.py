@@ -7,10 +7,11 @@ from werkzeug.utils import secure_filename
 from markupsafe import Markup
 import os
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import inspect, text
 import hashlib
 from dotenv import load_dotenv
+from functools import wraps
 
 load_dotenv()
 try:
@@ -1460,6 +1461,46 @@ def recommendations():
     recommended_users = sorted(recommended_users, key=lambda x: x.followers.count(), reverse=True)[:20]
     
     return render_template('recommendations.html', recommended_users=recommended_users)
+
+
+# ===== FOLLOW API =====
+@app.route('/api/follow/<int:user_id>', methods=['POST'])
+@login_required
+def api_toggle_follow(user_id):
+    user_to_follow = User.query.get_or_404(user_id)
+    
+    if user_to_follow.id == current_user.id:
+        return jsonify({'success': False, 'message': 'You cannot follow yourself'})
+    
+    # Check if already following
+    existing_follow = Follow.query.filter_by(
+        follower_id=current_user.id,
+        following_id=user_to_follow.id
+    ).first()
+    
+    if existing_follow:
+        # Unfollow
+        db.session.delete(existing_follow)
+        db.session.commit()
+        return jsonify({'success': True, 'followed': False})
+    else:
+        # Follow
+        new_follow = Follow(
+            follower_id=current_user.id,
+            following_id=user_to_follow.id,
+            status='accepted'  # Auto-accept for now
+        )
+        db.session.add(new_follow)
+        
+        # Create notification
+        notif = Notification(
+            user_id=user_to_follow.id,
+            actor_id=current_user.id,
+            type='follow'
+        )
+        db.session.add(notif)
+        db.session.commit()
+        return jsonify({'success': True, 'followed': True})
 
 
 # ===== POST ANALYTICS =====
