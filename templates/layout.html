@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,47 +9,62 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+
 <body class="dashboard-body">
     <div class="dashboard-container">
         <main class="content-area">
             <header class="top-header">
                 <div style="display:flex;align-items:center;gap:12px">
-                    <svg width="36" height="36" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <rect width="48" height="48" rx="10" fill="#001428"/>
-                        <path d="M12 34C14.5 30 17 28 24 24C31 20 34 18 36 16" stroke="#00d2ff" stroke-width="2" stroke-linecap="round"/>
-                        <circle cx="18" cy="18" r="3" fill="#00d2ff"/>
+                    <svg width="36" height="36" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true">
+                        <rect width="48" height="48" rx="10" fill="#001428" />
+                        <path d="M12 34C14.5 30 17 28 24 24C31 20 34 18 36 16" stroke="#00d2ff" stroke-width="2"
+                            stroke-linecap="round" />
+                        <circle cx="18" cy="18" r="3" fill="#00d2ff" />
                     </svg>
                     <div style="font-weight:700;color:var(--text)">The Witcher Blogs</div>
                 </div>
                 <div style="display:flex;align-items:center;gap:16px;flex:1;justify-content:center">
                     <form action="{{ url_for('search') }}" method="get" style="display:flex;align-items:center;gap:6px">
-                        <input name="q" placeholder="Search posts..." style="padding:8px 12px;border-radius:8px;border:1px solid rgba(16,40,48,0.1);width:220px;background:rgba(255,255,255,0.05);color:var(--text)">
-                        <button type="submit" style="padding:8px 14px;border-radius:8px;background:var(--primary);border:none;color:#fff;cursor:pointer;font-weight:600"><i class="fas fa-search"></i></button>
+                        <input name="q" placeholder="Search posts..."
+                            style="padding:8px 12px;border-radius:8px;border:1px solid rgba(16,40,48,0.1);width:220px;background:rgba(255,255,255,0.05);color:var(--text)">
+                        <button type="submit"
+                            style="padding:8px 14px;border-radius:8px;background:var(--primary);border:none;color:#fff;cursor:pointer;font-weight:600"><i
+                                class="fas fa-search"></i></button>
                     </form>
                 </div>
                 <div style="display:flex;align-items:center;gap:16px">
-                    <button id="darkModeToggle" class="btn-dark-mode" onclick="toggleDarkMode()" title="Toggle dark mode" style="background:none;border:none;cursor:pointer;font-size:18px;padding:8px 12px;border-radius:8px;transition:all 0.3s;">
+                    <button id="darkModeToggle" class="btn-dark-mode" onclick="toggleDarkMode()"
+                        title="Toggle dark mode"
+                        style="background:none;border:none;cursor:pointer;font-size:18px;padding:8px 12px;border-radius:8px;transition:all 0.3s;">
                         <i class="fas fa-moon"></i>
                     </button>
-                    <div class="user-info">Welcome back, <span>{{ current_user.username|display_name if current_user.is_authenticated else 'Guest' }}</span></div>
+                    <div class="user-info">Welcome back, <span>{{ current_user.username|display_name if
+                            current_user.is_authenticated else 'Guest' }}</span></div>
                 </div>
             </header>
 
             <nav class="glass-nav" aria-label="Main navigation">
                 <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a>
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('create_post') }}"><i class="fas fa-pen-fancy"></i> Create Post</a>
-                    <a href="{{ url_for('notifications') }}"><i class="fas fa-bell"></i> Notifications</a>
-                    <a href="{{ url_for('messages') }}"><i class="fas fa-envelope"></i> Messages</a>
-                    <a href="{{ url_for('follow_requests') }}"><i class="fas fa-user-check"></i> Follow Requests</a>
-                    <a href="{{ url_for('recommendations') }}"><i class="fas fa-star"></i> Discover</a>
-                    <a href="{{ url_for('analytics') }}"><i class="fas fa-chart-bar"></i> Analytics</a>
-                    <a href="{{ url_for('my_collections') }}"><i class="fas fa-bookmark"></i> Collections</a>
-                    <a href="{{ url_for('my_account') }}"><i class="fas fa-user"></i> My Account</a>
-                    <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <a href="{{ url_for('create_post') }}"><i class="fas fa-pen-fancy"></i> Create Post</a>
+                <a href="{{ url_for('notifications') }}"><i class="fas fa-bell"></i> Notifications</a>
+                <a href="{{ url_for('messages') }}"><i class="fas fa-envelope"></i> Messages</a>
+                <a href="{{ url_for('follow_requests') }}"><i class="fas fa-user-check"></i> Follow Requests</a>
+                <a href="{{ url_for('recommendations') }}"><i class="fas fa-star"></i> Discover</a>
+                <a href="{{ url_for('analytics') }}"><i class="fas fa-chart-bar"></i> Analytics</a>
+                <a href="{{ url_for('my_collections') }}"><i class="fas fa-bookmark"></i> Collections</a>
+                <a href="{{ url_for('my_account') }}"><i class="fas fa-user"></i> My Account</a>
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link"
+                    style="background: linear-gradient(135deg, #ff6b35, #ff8c5a); color: white; font-weight: 700; box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);">
+                    <i class="fas fa-shield-alt"></i> Admin Panel
+                </a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 {% else %}
-                    <a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a>
-                    <a href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Register</a>
+                <a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a>
+                <a href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Register</a>
                 {% endif %}
             </nav>
 
@@ -62,4 +78,5 @@
     <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
+
 </html>
