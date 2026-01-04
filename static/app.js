@@ -229,25 +229,37 @@ function scrollToComments(postId) {
 }
 
 // Toggle Follow Button
-function toggleFollow(button, userId) {
+function toggleFollow(userId, button) {
     const isFollowing = button.classList.contains('following');
-    const endpoint = isFollowing ? `/unfollow/${userId}` : `/follow/${userId}`;
+    const endpoint = `/api/follow/${userId}`;
+
+    button.disabled = true;
+    button.textContent = 'Loading...';
 
     fetch(endpoint, { method: 'POST' })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                button.classList.toggle('following');
-                if (button.classList.contains('following')) {
-                    button.querySelector('span').textContent = 'Following';
-                    button.querySelector('i').className = 'fas fa-check';
+                if (data.followed) {
+                    button.classList.add('following');
+                    button.textContent = 'Following';
                 } else {
-                    button.querySelector('span').textContent = 'Follow';
-                    button.querySelector('i').className = 'fas fa-user-plus';
+                    button.classList.remove('following');
+                    button.textContent = 'Follow';
                 }
+            } else {
+                alert('Error: ' + (data.message || data.error || 'Unknown error'));
+                button.textContent = isFollowing ? 'Following' : 'Follow';
             }
         })
-        .catch(err => console.error('Follow error:', err));
+        .catch(err => {
+            console.error('Follow error:', err);
+            alert('An error occurred while following user');
+            button.textContent = isFollowing ? 'Following' : 'Follow';
+        })
+        .finally(() => {
+            button.disabled = false;
+        });
 }
 
 // Toggle Bookmark
