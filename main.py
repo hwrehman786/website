@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from markupsafe import Markup
 import os
 import base64
+import re
 from datetime import datetime, timedelta
 from sqlalchemy import inspect, text
 import hashlib
